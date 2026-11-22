@@ -123,13 +123,15 @@ export default function SmartIrrigation() {
       setLoading(true);
       const farmCrop = activeFarm.currentCrop || 'Wheat';
       const farmAcres = activeFarm.areaAcres || 2.5;
+      const lat = activeFarm.location?.coordinates?.latitude || activeFarm.location?.lat || '';
+      const lon = activeFarm.location?.coordinates?.longitude || activeFarm.location?.lon || '';
 
       const [advRes, wtrRes] = await Promise.all([
         axios.get(`/api/advisory/irrigation?plotId=${activePlotId}&cropName=${farmCrop}&cropStage=${cropStage}&currentMoisture=${currentMoisture}&acreage=${farmAcres}`),
-        axios.get(`/api/advisory/weather?plotId=${activePlotId}`)
+        axios.get(`/api/advisory/weather?plotId=${activePlotId}&lat=${lat}&lon=${lon}`)
       ]);
-      setAdvisory(advRes.data.data);
-      setWeather(wtrRes.data.data);
+      setAdvisory(advRes.data?.data);
+      setWeather(wtrRes.data?.data || advRes.data?.data?.weather);
     } catch (e) {
       console.error('Failed to load advisory:', e);
     } finally {
@@ -336,16 +338,25 @@ export default function SmartIrrigation() {
             )}
             <div>
               <div style={{ fontWeight: '700', fontSize: '16px', color: '#1f2937' }}>
-                {weather.location?.district || 'Ludhiana'}, {weather.location?.state || 'Punjab'} — {weather.temperatureCelsius}°C
+                {weather.location?.district || activeFarm.location?.district || 'Delhi'}, {weather.location?.state || activeFarm.location?.state || 'India'} — {weather.temperatureCelsius}°C
               </div>
               <div style={{ fontSize: '14px', color: '#4b5563', marginTop: '2px' }}>
                 {weather.forecastRainNext24hMm >= 5 ? (
-                  <span style={{ color: '#b45309', fontWeight: '600' }}>
-                    {lang === 'hi' ? `बारिश का अनुमान: ${weather.forecastRainNext24hMm} मिमी (अगले 24 घंटे में) — सिंचाई रोक दी गई है!` : `Rain Forecasted: ${weather.forecastRainNext24hMm} mm (Next 24h) — Irrigation Automatically Deferred!`}
+                  <span style={{ color: '#b45309', fontWeight: '700' }}>
+                    {lang === 'hi'
+                      ? `⚠️ बारिश का पूर्वानुमान: ${weather.forecastRainNext24hMm} मिमी (अगले 24 घंटे में) — सिंचाई रोक दी गई है!`
+                      : `⚠️ Rain Forecasted: ${weather.forecastRainNext24hMm} mm (Next 24h) — Irrigation Automatically Deferred!`}
                   </span>
                 ) : (
                   <span>
-                    {lang === 'hi' ? `मौसम शुष्क है (आर्द्रता: ${weather.humidityPercent}%, ET₀ जल वाष्पीकरण: ${weather.referenceEvapotranspirationET0} मिमी/दिन)` : `Dry Weather (Humidity: ${weather.humidityPercent}%, ET₀ Evapotranspiration: ${weather.referenceEvapotranspirationET0} mm/day)`}
+                    <strong style={{ color: '#15803d' }}>
+                      {lang === 'hi'
+                        ? `वर्षा पूर्वानुमान: ${weather.forecastRainNext24hMm || 0} मिमी (साफ़ आसमान / बारिश नहीं)`
+                        : `24h Rain Forecast: ${weather.forecastRainNext24hMm || 0} mm (Clear Sky / No Rain)`}
+                    </strong>
+                    {' '}• {lang === 'hi'
+                      ? `आर्द्रता: ${weather.humidityPercent}%, ET₀ वाष्पीकरण: ${weather.referenceEvapotranspirationET0} मिमी/दिन`
+                      : `Humidity: ${weather.humidityPercent}%, ET₀ Evapotranspiration: ${weather.referenceEvapotranspirationET0} mm/day`}
                   </span>
                 )}
               </div>
@@ -353,7 +364,7 @@ export default function SmartIrrigation() {
           </div>
 
           <div style={{ fontSize: '13px', color: '#6b7280' }}>
-            {lang === 'hi' ? 'स्रोत: IMD / Open-Meteo' : 'Source: IMD / Open-Meteo Public API'}
+            {lang === 'hi' ? 'स्रोत: IMD / Open-Meteo लाइव API' : 'Source: IMD / Open-Meteo High-Resolution Live API'}
           </div>
         </div>
       )}
@@ -578,12 +589,49 @@ export default function SmartIrrigation() {
             }}>
               {advisory.rainSkipTriggered
                 ? (lang === 'hi' ? 'बारिश के कारण स्थगित' : 'RAIN SUPPRESSED')
-                : advisory.urgency}
+                : (advisory.urgency === 'MODERATE' ? (lang === 'hi' ? 'मध्यम (योजना बनाएं)' : 'MODERATE (PLAN SOON)') : advisory.urgency)}
             </div>
             <div style={{ fontSize: '14px', color: '#64748b', marginTop: '8px' }}>
               {advisory.rainSkipTriggered
-                ? (lang === 'hi' ? 'बारिश से प्राकृतिक जल मिलेगा - बिजली व जल बचाएं' : 'Natural rain incoming — conserve electricity & water')
+                ? (lang === 'hi' ? `बारिश का अनुमान (${advisory.forecastRainNext24hMm ?? weather?.forecastRainNext24hMm} मिमी) — प्राकृतिक पानी मिलेगा, मोटर बंद रखें` : `Natural rain (${advisory.forecastRainNext24hMm ?? weather?.forecastRainNext24hMm} mm) incoming — conserve electricity & water`)
                 : (lang === 'hi' ? `लक्ष्य नमी: ${advisory.targetMoisture}% | वर्तमान: ${advisory.currentMoisture}%` : `Target Moisture: ${advisory.targetMoisture}% | Current: ${advisory.currentMoisture}%`)}
+            </div>
+            <div style={{ marginTop: '8px', fontSize: '12px', fontWeight: '700', color: (advisory.forecastRainNext24hMm ?? weather?.forecastRainNext24hMm ?? 0) >= 5 ? '#b45309' : '#0369a1' }}>
+              🌧️ {lang === 'hi'
+                ? `वर्षा अनुमान: ${advisory.forecastRainNext24hMm ?? weather?.forecastRainNext24hMm ?? 0} मिमी (${(advisory.forecastRainNext24hMm ?? weather?.forecastRainNext24hMm ?? 0) >= 5 ? 'बारिश आएगी' : 'बारिश नहीं'})`
+                : `Rain Forecast: ${advisory.forecastRainNext24hMm ?? weather?.forecastRainNext24hMm ?? 0} mm (${(advisory.forecastRainNext24hMm ?? weather?.forecastRainNext24hMm ?? 0) >= 5 ? 'Rain Expected' : 'No Rain'})`}
+            </div>
+          </div>
+
+          <div style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '12px',
+            border: '1px solid #e5e7eb',
+            padding: '24px',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.06)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <span style={{ fontSize: '14px', fontWeight: '600', color: '#6b7280' }}>
+                {lang === 'hi' ? 'वर्षा पूर्वानुमान एवं मौसम' : 'Rain Forecast & Weather'}
+              </span>
+              <CloudRain color={(advisory.forecastRainNext24hMm ?? weather?.forecastRainNext24hMm ?? 0) >= 5 ? '#d97706' : '#0284c7'} size={24} />
+            </div>
+            <div style={{ fontSize: '28px', fontWeight: '800', color: (advisory.forecastRainNext24hMm ?? weather?.forecastRainNext24hMm ?? 0) >= 5 ? '#d97706' : '#0f172a' }}>
+              {advisory.forecastRainNext24hMm ?? weather?.forecastRainNext24hMm ?? 0} <span style={{ fontSize: '16px', fontWeight: '600' }}>{lang === 'hi' ? 'मिमी' : 'mm'}</span>
+            </div>
+            <div style={{ fontSize: '13px', fontWeight: '700', color: (advisory.forecastRainNext24hMm ?? weather?.forecastRainNext24hMm ?? 0) >= 5 ? '#b45309' : '#16a34a', marginTop: '6px' }}>
+              {lang === 'hi'
+                ? ((advisory.forecastRainNext24hMm ?? weather?.forecastRainNext24hMm ?? 0) >= 5
+                  ? `⚠️ बारिश की संभावना: ${weather?.precipitationProbabilityMax ?? 75}%`
+                  : `☀️ साफ़ आसमान (बारिश की संभावना: ${weather?.precipitationProbabilityMax ?? 0}%)`)
+                : ((advisory.forecastRainNext24hMm ?? weather?.forecastRainNext24hMm ?? 0) >= 5
+                  ? `⚠️ Rain Probability: ${weather?.precipitationProbabilityMax ?? 75}%`
+                  : `☀️ Clear Sky (Rain Probability: ${weather?.precipitationProbabilityMax ?? 0}%)`)}
+            </div>
+            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '6px' }}>
+              {lang === 'hi'
+                ? `क्षेत्र: ${weather?.location?.district || activeFarm.location?.district || 'दिल्ली'}, ${weather?.location?.state || activeFarm.location?.state || 'भारत'}`
+                : `Area: ${weather?.location?.district || activeFarm.location?.district || 'Delhi'}, ${weather?.location?.state || activeFarm.location?.state || 'India'}`}
             </div>
           </div>
 

@@ -271,21 +271,14 @@ exports.updateLocation = async (req, res) => {
       }
     );
 
-    // Call live Open-Meteo Weather API for the new location to fetch real-time rain & temperature
-    const liveApiData = await fetchLiveWeatherFromOpenMeteo(parsedLat, parsedLon);
-
-    const weatherData = {
-      plotId,
-      location: { district: schedule.location.district, state: schedule.location.state },
-      temperatureCelsius: liveApiData?.temperatureCelsius ?? 24.5,
-      humidityPercent: liveApiData?.humidityPercent ?? 55,
-      forecastRainNext24hMm: liveApiData?.forecastRainNext24hMm ?? 0.0,
-      referenceEvapotranspirationET0: liveApiData?.referenceEvapotranspirationET0 ?? 3.8,
-      source: liveApiData ? 'LIVE_OPEN_METEO_API' : 'LOCAL_ESTIMATE',
-      recordedAt: new Date()
-    };
-
-    const newSnapshot = await WeatherSnapshot.create(weatherData);
+    // Call unified live Open-Meteo Weather API for the new location to fetch real-time rain & temperature
+    const newSnapshot = await fetchLiveWeather({
+      lat: parsedLat,
+      lon: parsedLon,
+      district: schedule.location.district,
+      state: schedule.location.state,
+      plotId
+    });
 
     // Re-evaluate crop alerts for this plot with the new live weather snapshot
     const updatedEval = await evaluateCropAlerts({ plotId });
@@ -304,63 +297,28 @@ exports.updateLocation = async (req, res) => {
   }
 };
 
-const https = require('https');
-
-function fetchLiveWeatherFromOpenMeteo(lat = 30.9010, lon = 75.8573) {
-  return new Promise((resolve) => {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=precipitation_sum,et0_fao_evapotranspiration,temperature_2m_max&current=temperature_2m,relative_humidity_2m&timezone=auto`;
-    const req = https.get(url, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        try {
-          const json = JSON.parse(data);
-          resolve({
-            temperatureCelsius: +(json.current?.temperature_2m ?? 24.5).toFixed(1),
-            humidityPercent: Math.round(json.current?.relative_humidity_2m ?? 60),
-            forecastRainNext24hMm: +(json.daily?.precipitation_sum?.[0] ?? 0).toFixed(1),
-            referenceEvapotranspirationET0: +(json.daily?.et0_fao_evapotranspiration?.[0] ?? 3.8).toFixed(1),
-            source: 'LIVE_OPEN_METEO_API'
-          });
-        } catch (e) {
-          resolve(null);
-        }
-      });
-    });
-    req.on('error', () => resolve(null));
-    req.setTimeout(3000, () => {
-      req.destroy();
-      resolve(null);
-    });
-  });
-}
+const { fetchLiveWeather } = require('../services/weatherService');
 
 exports.getWeatherForecast = async (req, res) => {
   try {
-    const { plotId = 'PLOT_001', lat = 30.9010, lon = 75.8573 } = req.query;
+    const { plotId = 'PLOT_001' } = req.query;
+    let lat = req.query.lat ? +req.query.lat : null;
+    let lon = req.query.lon ? +req.query.lon : null;
+    let district = 'Farm Coordinates';
+    let state = 'India';
 
-    // 1. Try real live weather API first
-    const liveApiData = await fetchLiveWeatherFromOpenMeteo(+lat, +lon);
-
-    if (liveApiData) {
-      return res.json({
-        success: true,
-        data: {
-          ...liveApiData,
-          location: { district: 'Farm Coordinates', state: 'India' },
-          recordedAt: new Date()
-        }
-      });
+    if (!lat || !lon) {
+      const CropSchedule = require('../models/CropSchedule');
+      const Plot = require('../models/Plot');
+      const schedule = await CropSchedule.findOne({ plotId, status: 'ACTIVE' }).lean();
+      const plot = await Plot.findOne({ plotId }).lean();
+      lat = schedule?.location?.lat || plot?.location?.coordinates?.latitude || (plotId === 'PLOT_STU_001' ? 28.77 : 30.9010);
+      lon = schedule?.location?.lon || plot?.location?.coordinates?.longitude || (plotId === 'PLOT_STU_001' ? 77.19 : 75.8573);
+      district = schedule?.location?.district || plot?.location?.district || 'Delhi';
+      state = schedule?.location?.state || plot?.location?.state || 'Delhi';
     }
 
-    // 2. Fallback to cached DB snapshot
-    const weather = await WeatherSnapshot.findOne({ plotId }).sort({ recordedAt: -1 }).lean() || {
-      temperatureCelsius: 24.5,
-      humidityPercent: 62,
-      forecastRainNext24hMm: 0,
-      referenceEvapotranspirationET0: 3.5,
-      recordedAt: new Date()
-    };
+    const weather = await fetchLiveWeather({ lat, lon, district, state, plotId });
     res.json({ success: true, data: weather });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

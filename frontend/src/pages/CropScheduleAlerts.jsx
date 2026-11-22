@@ -1614,8 +1614,8 @@ export default function CropScheduleAlerts() {
                   marginTop: '4px'
                 }}>
                   {(data?.weather?.forecastRainNext24hMm || 0) >= 5
-                    ? (lang === 'hi' ? `${data.weather.forecastRainNext24hMm} मिमी बारिश (स्थगित)` : `${data.weather.forecastRainNext24hMm} mm Rain Expected`)
-                    : (lang === 'hi' ? 'बारिश नहीं, मौसम साफ' : 'No Rain, Clear Sky')}
+                    ? (lang === 'hi' ? `${data.weather.forecastRainNext24hMm} मिमी बारिश (स्थगित)` : `${data.weather.forecastRainNext24hMm} mm Rain (Deferred)`)
+                    : (lang === 'hi' ? `${data?.weather?.forecastRainNext24hMm || 0} मिमी (बारिश नहीं, साफ़ मौसम)` : `${data?.weather?.forecastRainNext24hMm || 0} mm (No Rain, Clear Sky)`)}
                 </div>
               </div>
             </div>
