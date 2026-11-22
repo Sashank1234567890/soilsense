@@ -238,7 +238,7 @@ async function deleteAlert(req, res) {
  */
 async function createAlert(req, res) {
   try {
-    const { plotId, type, severity, message, value, threshold } = req.body;
+    const { plotId, type, severity, message, messageEn, messageHi, value, threshold } = req.body;
     const userId = req.user?._id || null;
     const newAlert = await Alert.create({
       alertId: `ALT_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
@@ -248,7 +248,9 @@ async function createAlert(req, res) {
       deviceId: req.body.deviceId || 'DEVICE_001',
       type: type || 'CUSTOM_FARM_ALERT',
       severity: severity || 'medium',
-      message: message || 'Custom farm advisory alert',
+      message: message || messageEn || 'Custom farm advisory alert',
+      messageEn: messageEn || message || 'Custom farm advisory alert',
+      messageHi: messageHi || message || 'खेत सलाहकार अलर्ट',
       value,
       threshold,
       deduplicationKey: `USER_${userId || 'GUEST'}_${Date.now()}`,

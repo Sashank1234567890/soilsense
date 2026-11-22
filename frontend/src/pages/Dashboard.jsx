@@ -40,11 +40,14 @@ import {
   getIoTStatus
 } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
+import { formatAlertMessage, formatAlertType } from '../utils/alertUtils';
 
 const COLORS = ['#2d6a4f', '#52b788', '#d97706', '#ef4444'];
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { lang } = useLanguage();
   const [stats, setStats] = useState({
     cropsCount: 0,
     soilsCount: 0,
@@ -354,10 +357,10 @@ export default function Dashboard() {
                     />
                     <div>
                       <div style={{ fontWeight: '600', fontSize: '0.88rem', color: '#1f2937' }}>
-                        {alt.type.replace(/_/g, ' ')}
+                        {formatAlertType(alt.type, lang)}
                       </div>
                       <div style={{ fontSize: '0.82rem', color: '#4b5563', marginTop: '2px' }}>
-                        {alt.message}
+                        {formatAlertMessage(alt, lang)}
                       </div>
                       <div style={{ fontSize: '0.72rem', color: '#6b7280', marginTop: '4px' }}>
                         Plot: {alt.plotId || 'N/A'} • Device: {alt.deviceId} • Key: {alt.deduplicationKey}

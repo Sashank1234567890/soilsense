@@ -22,8 +22,11 @@ import {
   Trash2
 } from 'lucide-react';
 import { getDevices, getDeviceReadings, getAlerts, deleteAlert, ingestSensorReading, getIoTStatus } from '../services/api';
+import { useLanguage } from '../context/LanguageContext';
+import { formatAlertMessage, formatAlertType } from '../utils/alertUtils';
 
 export default function LiveMonitoring() {
+  const { lang } = useLanguage();
   const [devices, setDevices] = useState([]);
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [readings, setReadings] = useState([]);
@@ -294,8 +297,8 @@ export default function LiveMonitoring() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <AlertTriangle size={18} color="#d97706" />
                       <div>
-                        <div style={{ fontWeight: '600', fontSize: '0.88rem' }}>{a.type}</div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{a.message}</div>
+                        <div style={{ fontWeight: '600', fontSize: '0.88rem' }}>{formatAlertType(a.type, lang)}</div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{formatAlertMessage(a, lang)}</div>
                       </div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>

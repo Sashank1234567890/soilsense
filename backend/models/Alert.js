@@ -24,6 +24,8 @@ const alertSchema = new mongoose.Schema({
   },
   severity: { type: String, enum: ['low', 'medium', 'high', 'critical'], default: 'medium' },
   message: { type: String, required: true },
+  messageEn: { type: String },
+  messageHi: { type: String },
   value: { type: Number },
   threshold: { type: Number },
   resolved: { type: Boolean, default: false },

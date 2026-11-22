@@ -4,6 +4,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import SeasonSuitabilityAdvisory from '../components/SeasonSuitabilityAdvisory';
+import { formatAlertMessage, formatAlertType } from '../utils/alertUtils';
 import {
   Calendar,
   MapPin,
@@ -1755,7 +1756,7 @@ export default function CropScheduleAlerts() {
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                       <span style={{ fontWeight: '700', fontSize: '14px', color: '#1f2937' }}>
-                        {alt.type.replace(/_/g, ' ')}
+                        {formatAlertType(alt.type, lang)}
                       </span>
                       <span style={{
                         fontSize: '11px',
@@ -1770,7 +1771,7 @@ export default function CropScheduleAlerts() {
                       </span>
                     </div>
                     <div style={{ fontSize: '13px', color: '#374151', marginTop: '3px' }}>
-                      {alt.message}
+                      {formatAlertMessage(alt, lang)}
                     </div>
                     <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
                       Plot: {alt.plotId || 'N/A'} • Device: {alt.deviceId || 'DEVICE_001'} • {new Date(alt.timestamp).toLocaleString()}
