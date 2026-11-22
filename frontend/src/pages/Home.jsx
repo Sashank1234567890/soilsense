@@ -15,7 +15,7 @@ import {
 export default function Home() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-      {/* Hero Section */}
+      
       <div className="hero-banner" style={{
         padding: '42px 38px',
         boxShadow: '0 12px 30px -8px rgba(6, 78, 59, 0.35)',
@@ -63,7 +63,6 @@ export default function Home() {
           </Link>
         </div>
 
-        {/* Subtle decorative glow */}
         <div style={{
           position: 'absolute',
           right: '-50px',
@@ -76,7 +75,6 @@ export default function Home() {
         }} />
       </div>
 
-      {/* The Three Primary Modules */}
       <div>
         <h2 style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--primary-900)', marginBottom: '8px' }}>
           Core System Modules
@@ -86,7 +84,7 @@ export default function Home() {
         </p>
 
         <div className="grid-3">
-          {/* Module 1 */}
+          
           <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', borderTop: '4px solid #40916c' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
@@ -108,7 +106,6 @@ export default function Home() {
             </Link>
           </div>
 
-          {/* Module 2 */}
           <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', borderTop: '4px solid #d97706' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
@@ -130,7 +127,6 @@ export default function Home() {
             </Link>
           </div>
 
-          {/* Module 3 */}
           <div className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', borderTop: '4px solid #2563eb' }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
@@ -154,7 +150,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* The Four Core Workflows */}
       <div className="card">
         <h2 style={{ fontSize: '1.3rem', fontWeight: '800', color: 'var(--primary-900)', marginBottom: '8px' }}>
           Evaluation Workflows
@@ -202,7 +197,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* System Architecture */}
       <div className="card">
         <h2 style={{ fontSize: '1.25rem', fontWeight: '800', color: 'var(--primary-900)', marginBottom: '16px' }}>
           Data Pipeline Architecture

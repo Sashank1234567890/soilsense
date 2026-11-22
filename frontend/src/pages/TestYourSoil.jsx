@@ -54,7 +54,6 @@ export default function TestYourSoil() {
   const [profiles, setProfiles] = useState([]);
   const [selectedProfileId, setSelectedProfileId] = useState('');
 
-  // Location fields
   const [locationForm, setLocationForm] = useState({
     state: 'Punjab',
     district: 'Ludhiana',
@@ -154,7 +153,6 @@ export default function TestYourSoil() {
     } catch (e) {}
   };
 
-  // Sensor reading fields
   const [sensorValues, setSensorValues] = useState({
     plotId: 'PLOT_001',
     moisture: 49.5,
@@ -190,7 +188,6 @@ export default function TestYourSoil() {
     }
   }, [user]);
 
-  // Auto-populate latest sensor reading on load
   useEffect(() => {
     const fetchInitialSensorData = async () => {
       try {
@@ -212,7 +209,6 @@ export default function TestYourSoil() {
     fetchInitialSensorData();
   }, []);
 
-  // Dynamic hardware status check
   useEffect(() => {
     const checkStatus = async () => {
       try {
@@ -357,7 +353,6 @@ export default function TestYourSoil() {
 
       const { plotId: valPlotId, ...cleanValues } = finalValues;
 
-      // 1. Submit Soil Test
       const testRes = await createSoilTest({
         plotId: valPlotId || locationForm.plotName || 'PLOT_001',
         testKind: 'general',
@@ -370,7 +365,6 @@ export default function TestYourSoil() {
       const savedTest = testRes.data.data;
       setActiveSoilTest(savedTest);
 
-      // 2. Generate comprehensive Soil Intelligence Report
       const repRes = await createReport(savedTest._id);
       setGeneratedReport(repRes.data.data);
 
@@ -385,7 +379,7 @@ export default function TestYourSoil() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-      {/* Page Header */}
+      
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#15803d', fontWeight: '700', fontSize: '0.85rem' }}>
           <Sprout size={18} color="#16a34a" />
@@ -401,10 +395,9 @@ export default function TestYourSoil() {
         </p>
       </div>
 
-      {/* SETUP & INGESTION FORM STEP */}
       {activeStep === 'setup' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          {/* Data Source Selector */}
+          
           <div className="card">
             <h2 className="card-title" style={{ fontSize: '1.2rem', color: '#1f2937' }}>
               {lang === 'hi' ? '1. जांच का तरीका चुनें' : '1. Select Testing Method'}
@@ -416,7 +409,7 @@ export default function TestYourSoil() {
             </div>
 
             <div className="grid-3" style={{ marginTop: '16px' }}>
-              {/* Option 1: Physical IoT Hardware */}
+              
               <div
                 onClick={() => setDataSource('hardware')}
                 style={{
@@ -449,7 +442,6 @@ export default function TestYourSoil() {
                 </p>
               </div>
 
-              {/* Option 2: Field Sensor Station (Simulated IoT Telemetry) */}
               <div
                 onClick={() => setDataSource('field_sensor')}
                 style={{
@@ -476,7 +468,6 @@ export default function TestYourSoil() {
                 </p>
               </div>
 
-              {/* Option 3: Registered Profile */}
               <div
                 onClick={() => setDataSource('registered_profile')}
                 style={{
@@ -505,7 +496,6 @@ export default function TestYourSoil() {
             </div>
           </div>
 
-          {/* Location Information Card */}
           <div className="card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
               <div>
@@ -520,7 +510,6 @@ export default function TestYourSoil() {
                 </div>
               </div>
 
-              {/* AUTO-DETECT GPS LOCATION BUTTON */}
               <button
                 type="button"
                 onClick={handleAutoDetectGPS}
@@ -550,7 +539,6 @@ export default function TestYourSoil() {
               </button>
             </div>
 
-            {/* GPS Success Feedback Toast */}
             {gpsSuccessMsg && (
               <div style={{
                 backgroundColor: '#ecfdf5',
@@ -610,7 +598,6 @@ export default function TestYourSoil() {
             </div>
           </div>
 
-          {/* Device & Parameter Ingestion Box */}
           <div className="card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
               <div>
@@ -623,7 +610,6 @@ export default function TestYourSoil() {
                 </div>
               </div>
 
-              {/* BOLD, PROMINENT TAKE READING BUTTON */}
               <button
                 type="button"
                 onClick={handleCaptureLiveReading}
@@ -648,7 +634,6 @@ export default function TestYourSoil() {
               </button>
             </div>
 
-            {/* Hardware Status Banner with Quick Reading Action */}
             {dataSource === 'hardware' && !iotConnected && (
               <div style={{
                 backgroundColor: '#fffbeb',
@@ -845,12 +830,9 @@ export default function TestYourSoil() {
         </div>
       )}
 
-      {/* =========================================================================
-          AUTO-GENERATED SOIL INTELLIGENCE REPORT (Sections A through G)
-          ========================================================================= */}
       {activeStep === 'report' && generatedReport && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          {/* Action Bar */}
+          
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
             <button
               onClick={() => setActiveStep('setup')}
@@ -878,7 +860,6 @@ export default function TestYourSoil() {
             </div>
           </div>
 
-          {/* Section A: Soil Condition */}
           <div className="card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
               <div>
@@ -923,7 +904,6 @@ export default function TestYourSoil() {
             </div>
           </div>
 
-          {/* Section B & C: Soil Classification & Geographic Context */}
           <div className="grid-2">
             <div className="card">
               <h2 className="card-title">{lang === 'hi' ? 'भाग ख: मिट्टी का वर्गीकरण' : 'Section B: Soil Classification Status'}</h2>
@@ -936,7 +916,6 @@ export default function TestYourSoil() {
                   : `Drainage: ${generatedReport.sections?.soilClassification?.drainage} • Texture: ${generatedReport.sections?.soilClassification?.texture}`}
               </div>
 
-              {/* Scientific Honesty Box */}
               <div className="scientific-disclaimer" style={{ marginTop: '16px' }}>
                 <div style={{ fontWeight: '700', marginBottom: '2px' }}>
                   {lang === 'hi' ? 'वैज्ञानिक वर्गीकरण नियम:' : 'Scientific Classification Rule:'}
@@ -959,7 +938,6 @@ export default function TestYourSoil() {
             </div>
           </div>
 
-          {/* Section D: Automatic Multi-Crop Recommendations */}
           <div className="card">
             <h2 className="card-title">
               {lang === 'hi' ? 'भाग घ: फसल अनुकूलता सिफारिशें (सभी फसलें)' : 'Section D: Crop Suitability Recommendations (All Crops)'}
@@ -1025,7 +1003,6 @@ export default function TestYourSoil() {
             </div>
           </div>
 
-          {/* Section E: Soil Improvement Recommendations */}
           <div className="card" style={{ borderTop: '4px solid #10b981', overflow: 'hidden' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
               <div>
@@ -1057,7 +1034,6 @@ export default function TestYourSoil() {
               </div>
             </div>
 
-            {/* Top Equilibrium / Health Banner if no critical deficiencies */}
             {(!(generatedReport.sections?.soilImprovementHighlights || []).some(h => (h.recommendation || '').toLowerCase().includes('deficient'))) && (
               <div style={{
                 display: 'flex',
@@ -1078,7 +1054,6 @@ export default function TestYourSoil() {
               </div>
             )}
 
-            {/* Improvement Cards Grid */}
             <div className="grid-2" style={{ gap: '16px' }}>
               {((generatedReport.sections?.soilImprovementHighlights?.length > 0)
                 ? generatedReport.sections.soilImprovementHighlights
@@ -1186,7 +1161,6 @@ export default function TestYourSoil() {
             </div>
           </div>
 
-          {/* Section F: Potential Uses */}
           <div className="card" style={{ borderTop: '4px solid #3b82f6', overflow: 'hidden' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
               <div>

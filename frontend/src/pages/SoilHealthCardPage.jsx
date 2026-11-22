@@ -48,7 +48,7 @@ export default function SoilHealthCardPage() {
 
   return (
     <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '24px 16px' }}>
-      {/* Title */}
+      
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 style={{ fontSize: '28px', fontWeight: '700', color: '#1b4332', display: 'flex', alignItems: 'center', gap: '12px', margin: 0 }}>
@@ -85,7 +85,6 @@ export default function SoilHealthCardPage() {
         )}
       </div>
 
-      {/* Generator Inputs */}
       {!card && (
         <div style={{
           backgroundColor: '#ffffff',
@@ -146,7 +145,6 @@ export default function SoilHealthCardPage() {
         </div>
       )}
 
-      {/* Official Certificate Card Layout */}
       {card && (
         <div style={{
           backgroundColor: '#ffffff',
@@ -155,7 +153,7 @@ export default function SoilHealthCardPage() {
           padding: '36px',
           boxShadow: '0 4px 16px rgba(0,0,0,0.08)'
         }}>
-          {/* Govt Header Banner */}
+          
           <div style={{ textAlign: 'center', borderBottom: '2px solid #2d6a4f', paddingBottom: '20px', marginBottom: '24px' }}>
             <div style={{ fontSize: '13px', fontWeight: '800', letterSpacing: '1.5px', color: '#1b4332', textTransform: 'uppercase' }}>
               GOVERNMENT OF INDIA • DEPARTMENT OF AGRICULTURE & FARMERS WELFARE
@@ -168,7 +166,6 @@ export default function SoilHealthCardPage() {
             </div>
           </div>
 
-          {/* Farmer & Plot Details Strip */}
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
@@ -197,7 +194,6 @@ export default function SoilHealthCardPage() {
             </div>
           </div>
 
-          {/* 12-Parameter National Standard Table */}
           <h3 style={{ fontSize: '16px', fontWeight: '800', color: '#1e293b', marginBottom: '14px' }}>
             {lang === 'hi' ? '12 राष्ट्रीय मृदा स्वास्थ्य मानक परीक्षण परिणाम' : '12 National Soil Quality Standard Test Parameters'}
           </h3>
@@ -267,7 +263,6 @@ export default function SoilHealthCardPage() {
             </table>
           </div>
 
-          {/* Verification Hash & QR Code Section */}
           <div style={{
             display: 'flex',
             justifyContent: 'space-between',

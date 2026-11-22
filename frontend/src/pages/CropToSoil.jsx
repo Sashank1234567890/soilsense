@@ -38,7 +38,7 @@ export default function CropToSoil() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Header */}
+      
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#b45309', fontWeight: '700', fontSize: '0.85rem', textTransform: 'uppercase' }}>
           <Sprout size={18} />
@@ -52,7 +52,6 @@ export default function CropToSoil() {
         </p>
       </div>
 
-      {/* Search and Category Filter Bar */}
       <div className="card" style={{ padding: '20px' }}>
         <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
           <div className="search-box-container" style={{ flex: '1', minWidth: '280px' }}>
@@ -96,7 +95,6 @@ export default function CropToSoil() {
         )}
       </div>
 
-      {/* Crop Cards Grid */}
       {loading ? (
         <div style={{ padding: '60px', textAlign: 'center', color: 'var(--text-muted)' }}>
           Loading crops catalogue...
@@ -145,7 +143,6 @@ export default function CropToSoil() {
                     {crop.description.length > 130 ? `${crop.description.substring(0, 130)}...` : crop.description}
                   </p>
 
-                  {/* Requirements Summary Pill */}
                   <div style={{ backgroundColor: 'var(--bg-subtle)', padding: '10px 12px', borderRadius: '8px', fontSize: '0.8rem', display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
                     <div>
                       <span style={{ color: 'var(--text-muted)' }}>Optimal pH: </span>

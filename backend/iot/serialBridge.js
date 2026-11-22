@@ -1,7 +1,6 @@
 /**
  * SoilSense: Node.js USB Serial Bridge
  * Reads newline-delimited JSON from Arduino Uno and forwards to the Express Ingestion API.
- * STATUS: HARDWARE-UNVERIFIED (Supports Mock Stream for Automated Unit & System Testing)
  */
 
 const { EventEmitter } = require('events');

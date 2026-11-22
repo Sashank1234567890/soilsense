@@ -67,7 +67,7 @@ export default function DiseaseRadar() {
 
   return (
     <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '24px 16px' }}>
-      {/* Title */}
+      
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 style={{ fontSize: '26px', fontWeight: '800', color: '#1b4332', display: 'flex', alignItems: 'center', gap: '12px', margin: 0 }}>
@@ -105,7 +105,6 @@ export default function DiseaseRadar() {
         </button>
       </div>
 
-      {/* Moisture Gauge / Slider Card (Elegant Earthy Style) */}
       <div style={{
         backgroundColor: '#ffffff',
         borderRadius: '12px',
@@ -161,7 +160,6 @@ export default function DiseaseRadar() {
         </div>
       </div>
 
-      {/* Elegant Warning Banner (Soft Earth Warmth, Zero Harsh Spikey Red) */}
       <div style={{
         backgroundColor: isHighRisk ? '#fffaf8' : '#f8fafc',
         border: `1.5px solid ${isHighRisk ? '#fed7aa' : '#bbf7d0'}`,
@@ -234,7 +232,6 @@ export default function DiseaseRadar() {
         </div>
       </div>
 
-      {/* Immediate Agronomic Action Plan (Clean Numbered Badges, Soft & Elegant) */}
       <div style={{
         backgroundColor: '#ffffff',
         borderRadius: '12px',
@@ -248,7 +245,7 @@ export default function DiseaseRadar() {
 
         {isHighRisk ? (
           <div style={{ display: 'grid', gap: '12px' }}>
-            {/* Step 1 */}
+            
             <div style={{
               display: 'flex',
               alignItems: 'flex-start',
@@ -277,7 +274,6 @@ export default function DiseaseRadar() {
               </div>
             </div>
 
-            {/* Step 2 */}
             <div style={{
               display: 'flex',
               alignItems: 'flex-start',
@@ -306,7 +302,6 @@ export default function DiseaseRadar() {
               </div>
             </div>
 
-            {/* Step 3 */}
             <div style={{
               display: 'flex',
               alignItems: 'flex-start',

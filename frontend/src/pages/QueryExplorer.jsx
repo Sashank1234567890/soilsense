@@ -36,10 +36,8 @@ export default function QueryExplorer() {
   const [activeOutputTab, setActiveOutputTab] = useState('table'); // 'table' | 'json' | 'pipeline'
   const [copied, setCopied] = useState(false);
 
-  // Category filter
   const [filterCategory, setFilterCategory] = useState('all');
 
-  // Transaction Simulator State
   const [txnStatus, setTxnStatus] = useState(null);
   const [txnLoading, setTxnLoading] = useState(false);
   const [txnPlotId, setTxnPlotId] = useState('PLOT_001');
@@ -114,7 +112,6 @@ export default function QueryExplorer() {
     ? queries
     : queries.filter(q => q.category.toLowerCase().includes(filterCategory.toLowerCase()));
 
-  // Helper to render table from array of objects
   const renderDataTable = (data) => {
     if (!Array.isArray(data) || data.length === 0) {
       return (
@@ -180,7 +177,7 @@ export default function QueryExplorer() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-      {/* Evaluation Suite Header */}
+      
       <div style={{
         background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 60%, #4338ca 100%)',
         borderRadius: '16px',
@@ -226,7 +223,6 @@ export default function QueryExplorer() {
             Interactive workbench executing curated multi-stage aggregation pipelines (<code>$facet</code>, <code>$setWindowFields</code>), index optimization profilers (<code>explain("executionStats")</code>), and multi-document ACID transactions.
           </p>
 
-          {/* Quick Metrics Bar */}
           <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', marginTop: '20px', borderTop: '1px solid rgba(255, 255, 255, 0.15)', paddingTop: '16px' }}>
             <div>
               <div style={{ fontSize: '0.72rem', color: '#a5b4fc', textTransform: 'uppercase' }}>Database Target</div>
@@ -256,7 +252,6 @@ export default function QueryExplorer() {
         </div>
       </div>
 
-      {/* Query Selector Card */}
       <div className="card">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
           <div>
@@ -264,7 +259,6 @@ export default function QueryExplorer() {
             <div className="card-subtitle">Choose a pre-compiled MongoDB operation to inspect execution plan and live data</div>
           </div>
 
-          {/* Category Filter Pills */}
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
             {[
               { id: 'all', label: 'All Queries' },
@@ -292,7 +286,6 @@ export default function QueryExplorer() {
           </div>
         </div>
 
-        {/* Query Buttons Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '10px', marginTop: '16px' }}>
           {filteredQueries.map(q => {
             const isSelected = selectedQueryId === q.id;
@@ -336,7 +329,6 @@ export default function QueryExplorer() {
         </div>
       </div>
 
-      {/* Query Execution Result & Profiler */}
       {loading ? (
         <div className="card" style={{ padding: '60px', textAlign: 'center', color: 'var(--text-muted)' }}>
           <div style={{ fontSize: '1.2rem', fontWeight: '700', color: 'var(--primary-800)', marginBottom: '8px' }}>
@@ -346,7 +338,7 @@ export default function QueryExplorer() {
         </div>
       ) : queryResult && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {/* Performance Profiler Bar */}
+          
           <div className="card" style={{ backgroundColor: '#0f172a', color: '#ffffff', border: 'none', boxShadow: '0 8px 20px rgba(0, 0, 0, 0.25)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
               <div>
@@ -361,7 +353,6 @@ export default function QueryExplorer() {
                 </div>
               </div>
 
-              {/* Real Stats */}
               <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
                 <div>
                   <div style={{ fontSize: '0.72rem', color: '#94a3b8', textTransform: 'uppercase' }}>Execution Time</div>
@@ -391,7 +382,6 @@ export default function QueryExplorer() {
             </p>
           </div>
 
-          {/* Results Output Box with Table / JSON Toggle */}
           <div className="card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -399,7 +389,7 @@ export default function QueryExplorer() {
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                {/* View Toggles */}
+                
                 <div style={{ display: 'flex', backgroundColor: 'var(--bg-subtle)', borderRadius: '8px', padding: '2px' }}>
                   <button
                     type="button"
@@ -446,7 +436,6 @@ export default function QueryExplorer() {
                   </button>
                 </div>
 
-                {/* Copy JSON */}
                 <button
                   type="button"
                   onClick={() => copyToClipboard(JSON.stringify(queryResult.data, null, 2))}
@@ -457,7 +446,6 @@ export default function QueryExplorer() {
                   <span>{copied ? 'Copied!' : 'Copy'}</span>
                 </button>
 
-                {/* Re-run button */}
                 <button
                   type="button"
                   onClick={() => runQuery(selectedQueryId)}
@@ -469,7 +457,6 @@ export default function QueryExplorer() {
               </div>
             </div>
 
-            {/* View Output */}
             {activeOutputTab === 'table' ? (
               renderDataTable(queryResult.data)
             ) : (
@@ -491,7 +478,6 @@ export default function QueryExplorer() {
         </div>
       )}
 
-      {/* Interactive Multi-Document ACID Transaction Playground */}
       <div className="card" style={{ borderTop: '4px solid #16a34a' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
           <div>
@@ -517,7 +503,6 @@ export default function QueryExplorer() {
           </button>
         </div>
 
-        {/* Transaction Input Controls */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
@@ -580,7 +565,6 @@ export default function QueryExplorer() {
           </div>
         </div>
 
-        {/* Transaction Status Response */}
         {txnStatus && (
           <div style={{
             marginTop: '16px',
@@ -605,7 +589,6 @@ export default function QueryExplorer() {
         )}
       </div>
 
-      {/* MongoDB Database Collection & Index Matrix */}
       {dbStats && (
         <div className="card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>

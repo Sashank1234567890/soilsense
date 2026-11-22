@@ -4,7 +4,6 @@ const LanguageContext = createContext();
 
 export const translations = {
   en: {
-    // Nav & Brand
     brandName: 'SoilSense Pro',
     brandTagline: 'Precision Soil Intelligence & Advisory',
     overview: 'Overview',
@@ -31,7 +30,6 @@ export const translations = {
     databaseExplorer: 'Database Explorer',
     aboutProject: 'About Project',
 
-    // Dashboard & Metrics
     iotStatus: 'IoT Probe (Arduino A0)',
     online: 'ONLINE',
     offline: 'OFFLINE',
@@ -52,7 +50,6 @@ export const translations = {
     listenVoice: 'Listen Advisory',
     speaking: 'Playing Audio...',
 
-    // Actions & Buttons
     testSoilNow: 'Start Soil Test',
     viewDetails: 'View Details',
     downloadSHC: 'Download Govt Soil Health Card (PDF)',
@@ -61,7 +58,6 @@ export const translations = {
     wheatBlockA: 'Ludhiana Basin - Block A (Wheat)'
   },
   hi: {
-    // Nav & Brand
     brandName: 'मृदा-सेंस प्रो (SoilSense Pro)',
     brandTagline: 'सटीक मृदा परीक्षण व कृषि सलाहकार प्रणाली',
     overview: 'सिंहावलोकन',
@@ -88,7 +84,6 @@ export const translations = {
     databaseExplorer: 'डेटाबेस एक्सप्लोरर',
     aboutProject: 'परियोजना परिचय (NIT Delhi)',
 
-    // Dashboard & Metrics
     iotStatus: 'सेंसर प्रोब (Arduino Uno A0)',
     online: 'सक्रिय (Online)',
     offline: 'निष्क्रिय (Offline)',
@@ -109,7 +104,6 @@ export const translations = {
     listenVoice: 'सलाह सुनें (आवाज़ में)',
     speaking: 'ऑडियो चल रहा है...',
 
-    // Actions & Buttons
     testSoilNow: 'मृदा परीक्षण शुरू करें',
     viewDetails: 'विस्तार से देखें',
     downloadSHC: 'सरकारी स्वास्थ्य कार्ड डाउनलोड करें (PDF)',

@@ -31,7 +31,6 @@ export default function SoilToCrop() {
     fetchSoils(val);
   };
 
-  // Client filter on texture if chosen
   const filteredSoils = soils.filter(s => {
     if (selectedTexture === 'All') return true;
     return s.texture && s.texture.some(t => t.toLowerCase().includes(selectedTexture.toLowerCase()));
@@ -39,7 +38,7 @@ export default function SoilToCrop() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Header and Disclaimer */}
+      
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary-700)', fontWeight: '700', fontSize: '0.85rem', textTransform: 'uppercase' }}>
           <Layers size={18} />
@@ -52,7 +51,6 @@ export default function SoilToCrop() {
           Search Indian soil benchmark series to discover typical physical profiles, pH ranges, and agronomically suitable crops.
         </p>
 
-        {/* Scientific Disclaimer */}
         <div className="scientific-disclaimer">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '700', marginBottom: '4px' }}>
             <Info size={16} />
@@ -62,7 +60,6 @@ export default function SoilToCrop() {
         </div>
       </div>
 
-      {/* Search & Filter Bar */}
       <div className="card" style={{ padding: '20px' }}>
         <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
           <div className="search-box-container" style={{ flex: '1', minWidth: '280px' }}>
@@ -105,7 +102,6 @@ export default function SoilToCrop() {
         )}
       </div>
 
-      {/* Soil Cards Grid */}
       {loading ? (
         <div style={{ padding: '60px', textAlign: 'center', color: 'var(--text-muted)' }}>
           Loading soil series...
@@ -141,7 +137,6 @@ export default function SoilToCrop() {
                   {soil.shortDescription}
                 </p>
 
-                {/* Characteristics highlights */}
                 <div style={{ marginBottom: '16px' }}>
                   <div style={{ fontSize: '0.78rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '6px' }}>
                     Key Characteristics
@@ -153,7 +148,6 @@ export default function SoilToCrop() {
                   </ul>
                 </div>
 
-                {/* Common Regions */}
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
                   <MapPin size={14} style={{ flexShrink: 0, marginTop: '2px', color: 'var(--primary-600)' }} />
                   <span>

@@ -70,7 +70,7 @@ export default function SoilHistory() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Header */}
+      
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary-700)', fontWeight: '700', fontSize: '0.85rem', textTransform: 'uppercase' }}>
@@ -97,7 +97,6 @@ export default function SoilHistory() {
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
       <div className="card" style={{ padding: '16px 20px' }}>
         <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center' }}>
           <div className="search-box-container" style={{ flex: '1', minWidth: '240px' }}>
@@ -139,7 +138,6 @@ export default function SoilHistory() {
         </div>
       </div>
 
-      {/* History Ledger List */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {loading ? (
           <div className="card" style={{ padding: '60px', textAlign: 'center', color: 'var(--text-muted)' }}>
@@ -164,7 +162,7 @@ export default function SoilHistory() {
                   transition: 'all 0.2s ease'
                 }}
               >
-                {/* Compact Row Header */}
+                
                 <div
                   style={{
                     padding: '18px 24px',
@@ -178,7 +176,7 @@ export default function SoilHistory() {
                   }}
                   onClick={() => toggleExpand(test._id)}
                 >
-                  {/* Left: Test Identification & Location */}
+                  
                   <div style={{ display: 'flex', alignItems: 'center', gap: '16px', minWidth: '280px' }}>
                     <div style={{
                       backgroundColor: test.overallSource === 'simulation' ? 'var(--badge-sim-bg)' : test.overallSource === 'hardware' ? 'var(--badge-hw-bg)' : 'var(--badge-lab-bg)',
@@ -221,7 +219,6 @@ export default function SoilHistory() {
                     </div>
                   </div>
 
-                  {/* Center: Key Parameters Snapshot */}
                   <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
                     <div style={{ textAlign: 'center', minWidth: '70px' }}>
                       <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Moisture</div>
@@ -252,7 +249,6 @@ export default function SoilHistory() {
                     </div>
                   </div>
 
-                  {/* Right: Recommendation Status & Expand Toggle */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     {test.selectedCropName ? (
                       <div style={{ textAlign: 'right' }}>
@@ -292,9 +288,6 @@ export default function SoilHistory() {
                   </div>
                 </div>
 
-                {/* =========================================================================
-                    EXPANDED ALL INFO CARD (Shows every tested parameter, source & remedy)
-                    ========================================================================= */}
                 {isExpanded && (
                   <div style={{
                     padding: '24px',
@@ -304,14 +297,14 @@ export default function SoilHistory() {
                     flexDirection: 'column',
                     gap: '20px'
                   }}>
-                    {/* 1. All Soil Parameters Matrix with Source Attribution */}
+                    
                     <div>
                       <h4 style={{ fontSize: '0.95rem', fontWeight: '800', color: 'var(--primary-900)', marginBottom: '10px' }}>
                         All Stored Soil Parameters & Measurement Attribution
                       </h4>
 
                       <div className="grid-4" style={{ gap: '10px' }}>
-                        {/* Moisture */}
+                        
                         <div style={{ padding: '12px', backgroundColor: 'var(--bg-subtle)', borderRadius: '8px' }}>
                           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Soil Moisture</div>
                           <div style={{ fontSize: '1.25rem', fontWeight: '800', fontFamily: 'JetBrains Mono', color: 'var(--primary-900)' }}>
@@ -322,7 +315,6 @@ export default function SoilHistory() {
                           </div>
                         </div>
 
-                        {/* pH */}
                         <div style={{ padding: '12px', backgroundColor: 'var(--bg-subtle)', borderRadius: '8px' }}>
                           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Soil pH</div>
                           <div style={{ fontSize: '1.25rem', fontWeight: '800', fontFamily: 'JetBrains Mono', color: 'var(--primary-900)' }}>
@@ -333,7 +325,6 @@ export default function SoilHistory() {
                           </div>
                         </div>
 
-                        {/* Temperature */}
                         <div style={{ padding: '12px', backgroundColor: 'var(--bg-subtle)', borderRadius: '8px' }}>
                           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Soil Temperature</div>
                           <div style={{ fontSize: '1.25rem', fontWeight: '800', fontFamily: 'JetBrains Mono', color: 'var(--primary-900)' }}>
@@ -344,7 +335,6 @@ export default function SoilHistory() {
                           </div>
                         </div>
 
-                        {/* Texture */}
                         <div style={{ padding: '12px', backgroundColor: 'var(--bg-subtle)', borderRadius: '8px' }}>
                           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Soil Texture</div>
                           <div style={{ fontSize: '1.15rem', fontWeight: '800', color: 'var(--primary-900)' }}>
@@ -355,7 +345,6 @@ export default function SoilHistory() {
                           </div>
                         </div>
 
-                        {/* Nitrogen */}
                         <div style={{ padding: '12px', backgroundColor: 'var(--bg-subtle)', borderRadius: '8px' }}>
                           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Nitrogen (N)</div>
                           <div style={{ fontSize: '1.15rem', fontWeight: '800', fontFamily: 'JetBrains Mono', color: 'var(--primary-900)' }}>
@@ -366,7 +355,6 @@ export default function SoilHistory() {
                           </div>
                         </div>
 
-                        {/* Phosphorus */}
                         <div style={{ padding: '12px', backgroundColor: 'var(--bg-subtle)', borderRadius: '8px' }}>
                           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Phosphorus (P)</div>
                           <div style={{ fontSize: '1.15rem', fontWeight: '800', fontFamily: 'JetBrains Mono', color: 'var(--primary-900)' }}>
@@ -377,7 +365,6 @@ export default function SoilHistory() {
                           </div>
                         </div>
 
-                        {/* Potassium */}
                         <div style={{ padding: '12px', backgroundColor: 'var(--bg-subtle)', borderRadius: '8px' }}>
                           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Potassium (K)</div>
                           <div style={{ fontSize: '1.15rem', fontWeight: '800', fontFamily: 'JetBrains Mono', color: 'var(--primary-900)' }}>
@@ -388,7 +375,6 @@ export default function SoilHistory() {
                           </div>
                         </div>
 
-                        {/* Organic Matter / EC */}
                         <div style={{ padding: '12px', backgroundColor: 'var(--bg-subtle)', borderRadius: '8px' }}>
                           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Organic Carbon</div>
                           <div style={{ fontSize: '1.15rem', fontWeight: '800', fontFamily: 'JetBrains Mono', color: 'var(--primary-900)' }}>
@@ -401,7 +387,6 @@ export default function SoilHistory() {
                       </div>
                     </div>
 
-                    {/* 2. Full Location & Plot Metadata */}
                     <div style={{ backgroundColor: 'var(--bg-subtle)', padding: '14px 18px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px', fontSize: '0.85rem' }}>
                       <div>
                         <span style={{ color: 'var(--text-muted)' }}>Farm Plot: </span>
@@ -425,7 +410,6 @@ export default function SoilHistory() {
                       </div>
                     </div>
 
-                    {/* 3. Crop Evaluation Diagnostic Explanation */}
                     {topRec && (
                       <div style={{ padding: '16px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
@@ -437,7 +421,6 @@ export default function SoilHistory() {
                           {topRec.explanation}
                         </p>
 
-                        {/* Deficient / Excess parameter chips */}
                         {topRec.deficientParameters?.length > 0 && (
                           <div style={{ marginTop: '8px', fontSize: '0.8rem', color: '#9a3412' }}>
                             <strong>Deficient Parameters: </strong>{topRec.deficientParameters.join(', ')}
@@ -451,7 +434,6 @@ export default function SoilHistory() {
                       </div>
                     )}
 
-                    {/* 4. Action Buttons */}
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', paddingTop: '12px', borderTop: '1px solid var(--border-light)' }}>
                       {test.report && (
                         <a

@@ -110,7 +110,7 @@ export default function LiveMonitoring() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-      {/* Header */}
+      
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#be185d', fontWeight: '700', fontSize: '0.85rem', textTransform: 'uppercase' }}>
@@ -137,7 +137,6 @@ export default function LiveMonitoring() {
         </div>
       </div>
 
-      {/* Device Selector Tabs */}
       <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
         {devices.map(dev => (
           <button
@@ -158,10 +157,9 @@ export default function LiveMonitoring() {
         ))}
       </div>
 
-      {/* Main Telemetry Panel */}
       {selectedDevice && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          {/* Status & Calibration Card */}
+          
           <div className="card" style={{ borderTop: '4px solid #be185d' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
               <div>
@@ -181,7 +179,6 @@ export default function LiveMonitoring() {
                 </div>
               </div>
 
-              {/* Health Metrics */}
               <div style={{ display: 'flex', gap: '16px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Battery size={16} color={hardwareStatus.connected ? '#16a34a' : '#d97706'} />
@@ -194,7 +191,6 @@ export default function LiveMonitoring() {
               </div>
             </div>
 
-            {/* Standby Banner when hardware is not plugged in */}
             {!hardwareStatus.connected && (
               <div style={{
                 backgroundColor: '#fffbeb',
@@ -215,7 +211,6 @@ export default function LiveMonitoring() {
               </div>
             )}
 
-            {/* Calibration Constants Box */}
             <div style={{ backgroundColor: 'var(--bg-subtle)', padding: '14px', borderRadius: '8px', marginTop: '16px', display: 'flex', gap: '24px', flexWrap: 'wrap', fontSize: '0.85rem' }}>
               <div>
                 <span style={{ color: 'var(--text-muted)' }}>Dry Calibration (Air): </span>
@@ -232,7 +227,6 @@ export default function LiveMonitoring() {
             </div>
           </div>
 
-          {/* Real-Time Graph */}
           <div className="card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <div>
@@ -269,7 +263,6 @@ export default function LiveMonitoring() {
             </div>
           </div>
 
-          {/* Recent Alerts Log */}
           <div className="card">
             <h3 className="card-title">Threshold Alert Log & Health Diagnostics</h3>
             <div className="card-subtitle">Automatic triggers evaluated on ingestion</div>

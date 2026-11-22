@@ -38,7 +38,7 @@ export default function FarmHeatmap() {
 
   return (
     <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '24px 16px' }}>
-      {/* Title */}
+      
       <div style={{ marginBottom: '24px' }}>
         <h1 style={{ fontSize: '28px', fontWeight: '700', color: '#1b4332', display: 'flex', alignItems: 'center', gap: '12px', margin: 0 }}>
           <Map size={32} color="#2d6a4f" />
@@ -52,7 +52,7 @@ export default function FarmHeatmap() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
-        {/* Heatmap Grid Canvas */}
+        
         <div style={{
           backgroundColor: '#ffffff',
           borderRadius: '12px',
@@ -102,7 +102,6 @@ export default function FarmHeatmap() {
             ))}
           </div>
 
-          {/* Legend */}
           <div style={{ display: 'flex', justifyContent: 'space-around', marginTop: '18px', fontSize: '12px', flexWrap: 'wrap', gap: '8px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <div style={{ width: '14px', height: '14px', backgroundColor: '#f87171', borderRadius: '3px' }} />
@@ -123,7 +122,6 @@ export default function FarmHeatmap() {
           </div>
         </div>
 
-        {/* Selected Zone Inspector */}
         <div style={{
           backgroundColor: '#ffffff',
           borderRadius: '12px',

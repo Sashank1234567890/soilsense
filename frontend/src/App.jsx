@@ -37,7 +37,7 @@ export default function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Layout />}>
-              {/* Retained Original 11 Pages */}
+              
               <Route index element={<Home />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="soil-to-crop" element={<SoilToCrop />} />
@@ -55,7 +55,6 @@ export default function App() {
               <Route path="login" element={<Login />} />
               <Route path="register" element={<Register />} />
 
-              {/* 6 New Agronomic Features */}
               <Route path="smart-irrigation" element={<SmartIrrigation />} />
               <Route path="fertilizer-prescription" element={<FertilizerPrescription />} />
               <Route path="disease-radar" element={<DiseaseRadar />} />

@@ -123,7 +123,7 @@ export default function Layout() {
 
   return (
     <div className="app-container">
-      {/* Sidebar Navigation */}
+      
       <aside className="sidebar">
         <div className="sidebar-header">
           <div className="sidebar-logo" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}><Sprout size={24} color="#10b981" /></div>
@@ -166,13 +166,12 @@ export default function Layout() {
         </div>
       </aside>
 
-      {/* Main Content Area */}
       <div className="main-content">
         <header className="top-bar">
           <h1 className="top-bar-title">{getPageTitle()}</h1>
 
           <div className="top-bar-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            {/* Bilingual English / Hindi Language Switcher Segmented Control */}
+            
             <div
               style={{
                 display: 'inline-flex',
@@ -228,7 +227,6 @@ export default function Layout() {
               </button>
             </div>
 
-            {/* Dynamic IoT Hardware Connection Status */}
             {iotConnected ? (
               <div className="badge badge-suitable" style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px' }}>
                 <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#16a34a' }}></span>
@@ -245,7 +243,6 @@ export default function Layout() {
               </div>
             )}
 
-            {/* User Profile & Demo Switcher */}
             {user ? (
               <div style={{ position: 'relative' }}>
                 <button
@@ -287,7 +284,6 @@ export default function Layout() {
                   <ChevronDown size={14} color="var(--text-muted)" />
                 </button>
 
-                {/* Dropdown Menu */}
                 {userDropdownOpen && (
                   <div style={{
                     position: 'absolute',
@@ -306,7 +302,7 @@ export default function Layout() {
                     flexDirection: 'column',
                     gap: '10px'
                   }}>
-                    {/* 1. Active Account Banner */}
+                    
                     <div style={{
                       padding: '10px 12px',
                       backgroundColor: '#f0fdf4',
@@ -352,7 +348,6 @@ export default function Layout() {
                       </span>
                     </div>
 
-                    {/* 2. Other Logged-In Accounts Switcher */}
                     <div>
                       <div style={{
                         display: 'flex',
@@ -465,7 +460,6 @@ export default function Layout() {
                       </div>
                     </div>
 
-                    {/* 3. Add Another Account Option */}
                     <div style={{ display: 'flex', gap: '6px' }}>
                       <button
                         onClick={() => { setUserDropdownOpen(false); navigate('/register'); }}
@@ -504,7 +498,6 @@ export default function Layout() {
                       </button>
                     </div>
 
-                    {/* 4. One-Click Evaluator Roles */}
                     <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '8px' }}>
                       <div style={{ padding: '2px 6px 6px 6px', fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: '800' }}>
                         {lang === 'hi' ? 'त्वरित डेमो प्रोफाइल चयन' : 'ONE-CLICK DEMO EVALUATOR PROFILES'}
@@ -578,7 +571,6 @@ export default function Layout() {
                       </div>
                     </div>
 
-                    {/* 5. Sign Out */}
                     <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '8px' }}>
                       <button
                         type="button"

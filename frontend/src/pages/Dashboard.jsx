@@ -89,7 +89,6 @@ export default function Dashboard() {
       setRecentTests(testsRes.data.data || []);
       setRecentAlerts(alertsRes.data.data || []);
 
-      // Format readings for Recharts
       const formattedReadings = (readingsRes.data.data || []).map(r => ({
         time: new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
         moisture: r.moisturePercentage,
@@ -113,7 +112,7 @@ export default function Dashboard() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-      {/* Stat Cards */}
+      
       <div className="grid-4">
         <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '16px', background: 'linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%)', border: '1px solid #bbf7d0' }}>
           <div style={{ backgroundColor: '#dcfce7', padding: '14px', borderRadius: '12px', color: '#15803d', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(22, 163, 74, 0.15)' }}>
@@ -156,7 +155,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Main Real-Time Telemetry Graph */}
       <div className="grid-3" style={{ gridTemplateColumns: '2fr 1fr' }}>
         <div className="card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -200,7 +198,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Suitability Distribution Chart */}
         <div className="card">
           <h2 className="card-title">Suitability Breakdown</h2>
           <div className="card-subtitle">Aggregated distribution across test recommendations</div>
@@ -240,9 +237,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Recent Tests and Alerts */}
       <div className="grid-2">
-        {/* Recent Soil Tests Feed */}
+        
         <div className="card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <div>
@@ -307,7 +303,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Recent IoT Alerts */}
         <div className="card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <div>

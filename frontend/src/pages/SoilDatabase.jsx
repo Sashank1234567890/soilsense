@@ -99,7 +99,7 @@ export default function SoilDatabase() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-      {/* Header Banner */}
+      
       <div style={{
         background: 'linear-gradient(135deg, #064e3b 0%, #065f46 60%, #047857 100%)',
         color: '#ffffff',
@@ -134,7 +134,6 @@ export default function SoilDatabase() {
           </p>
         </div>
 
-        {/* Quick Stat Pill */}
         <div style={{
           position: 'absolute',
           right: '32px',
@@ -161,7 +160,6 @@ export default function SoilDatabase() {
         </div>
       </div>
 
-      {/* Search & Filter Toolbar */}
       <div className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
         <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
           <div className="search-box-container" style={{ flex: 1 }}>
@@ -185,7 +183,6 @@ export default function SoilDatabase() {
           </button>
         </div>
 
-        {/* Category Pills */}
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
           <span style={{ fontSize: '0.78rem', fontWeight: '700', color: 'var(--text-muted)', marginRight: '4px' }}>
             Filter:
@@ -230,7 +227,6 @@ export default function SoilDatabase() {
         </div>
       </div>
 
-      {/* Error Banner */}
       {error && (
         <div className="alert-box alert-danger">
           <div style={{ flex: 1 }}>{error}</div>
@@ -240,7 +236,6 @@ export default function SoilDatabase() {
         </div>
       )}
 
-      {/* Grid of Soils */}
       {loading ? (
         <div className="card" style={{ padding: '60px', textAlign: 'center', color: 'var(--text-muted)' }}>
           <RefreshCw size={32} className="spin" style={{ margin: '0 auto 12px auto', color: '#059669' }} />
@@ -312,7 +307,7 @@ export default function SoilDatabase() {
 
               <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div>
-                  {/* Soil Title */}
+                  
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px', gap: '8px' }}>
                     <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: 'var(--primary-900)', lineHeight: '1.25' }}>
                       {soil.name}
@@ -324,7 +319,6 @@ export default function SoilDatabase() {
                     )}
                   </div>
 
-                  {/* Classification / Taxonomy */}
                   <div style={{
                     fontSize: '0.78rem',
                     fontWeight: '700',
@@ -338,7 +332,6 @@ export default function SoilDatabase() {
                     {soil.classification || 'USDA / ICAR Taxonomy'}
                   </div>
 
-                  {/* Description */}
                   <p style={{
                     fontSize: '0.86rem',
                     color: 'var(--text-secondary)',
@@ -352,7 +345,6 @@ export default function SoilDatabase() {
                     {soil.shortDescription}
                   </p>
 
-                  {/* Moisture & Retention Attributes */}
                   <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '12px' }}>
                     {soil.waterRetention && (
                       <span style={{ fontSize: '0.72rem', backgroundColor: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '4px', fontWeight: '600' }}>
@@ -366,7 +358,6 @@ export default function SoilDatabase() {
                     )}
                   </div>
 
-                  {/* Suitable Crops Sample */}
                   {Array.isArray(soil.suitableCropsSummary) && soil.suitableCropsSummary.length > 0 && (
                     <div style={{ marginBottom: '14px' }}>
                       <div style={{ fontSize: '0.72rem', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '4px' }}>
@@ -398,7 +389,6 @@ export default function SoilDatabase() {
                     </div>
                   )}
 
-                  {/* Geographic States */}
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                     <MapPin size={14} style={{ flexShrink: 0, marginTop: '2px', color: '#059669' }} />
                     <span style={{ lineHeight: '1.4' }}>
@@ -408,7 +398,6 @@ export default function SoilDatabase() {
                   </div>
                 </div>
 
-                {/* Action Button */}
                 <div style={{ paddingTop: '16px', marginTop: '16px', borderTop: '1px solid var(--border-light)' }}>
                   <Link
                     to={`/soil-to-crop/${soil._id}`}

@@ -35,7 +35,7 @@ export default function MandiEconomics() {
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 16px' }}>
-      {/* Title */}
+      
       <div style={{ marginBottom: '24px' }}>
         <h1 style={{ fontSize: '26px', fontWeight: '800', color: '#1b4332', display: 'flex', alignItems: 'center', gap: '12px', margin: 0 }}>
           <TrendingUp size={30} color="#2d6a4f" />
@@ -50,10 +50,9 @@ export default function MandiEconomics() {
         </p>
       </div>
 
-      {/* Featured Metric Cards (Clean Human Agri-Design, No Jarring AI Red) */}
       {data?.current && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '18px', marginBottom: '26px' }}>
-          {/* Card 1: Crop & Rate */}
+          
           <div style={{
             backgroundColor: '#ffffff',
             borderRadius: '12px',
@@ -75,7 +74,6 @@ export default function MandiEconomics() {
             </div>
           </div>
 
-          {/* Card 2: Gross Revenue */}
           <div style={{
             backgroundColor: '#ffffff',
             borderRadius: '12px',
@@ -97,7 +95,6 @@ export default function MandiEconomics() {
             </div>
           </div>
 
-          {/* Card 3: Input Cost (Clean Slate Neutral - NO Harsh Red!) */}
           <div style={{
             backgroundColor: '#ffffff',
             borderRadius: '12px',
@@ -119,7 +116,6 @@ export default function MandiEconomics() {
             </div>
           </div>
 
-          {/* Card 4: Net Profit Margin (Calm Forest Green) */}
           <div style={{
             backgroundColor: '#f0fdf4',
             borderRadius: '12px',
@@ -143,7 +139,6 @@ export default function MandiEconomics() {
         </div>
       )}
 
-      {/* Comparison Table (Calm Professional Government Agri-Theme) */}
       {data?.comparison && (
         <div style={{
           backgroundColor: '#ffffff',
@@ -213,7 +208,7 @@ export default function MandiEconomics() {
                       <td style={{ padding: '14px 16px', color: '#1e3a8a', fontWeight: '700' }}>
                         ₹{c.grossRevenueInr.toLocaleString()}
                       </td>
-                      {/* Cost styled in calm neutral slate, NOT harsh AI red */}
+                      
                       <td style={{ padding: '14px 16px', color: '#475569', fontWeight: '600' }}>
                         ₹{c.totalCostInr.toLocaleString()}
                       </td>

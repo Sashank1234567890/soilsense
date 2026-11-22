@@ -43,7 +43,6 @@ export default function SmartIrrigation() {
   const [latestHardwareReading, setLatestHardwareReading] = useState(null);
   const [hardwareDetected, setHardwareDetected] = useState(false);
 
-  // Fetch all registered farms
   useEffect(() => {
     const fetchFarms = async () => {
       try {
@@ -70,7 +69,6 @@ export default function SmartIrrigation() {
     ? (CROP_NAME_MAP[activeFarm.currentCrop]?.hi || activeFarm.currentCrop)
     : (CROP_NAME_MAP[activeFarm.currentCrop]?.en || activeFarm.currentCrop);
 
-  // 1. Live Hardware Polling (checks for Arduino Pin A0 readings every 2.5 seconds)
   useEffect(() => {
     let isMounted = true;
 
@@ -109,7 +107,6 @@ export default function SmartIrrigation() {
     };
   }, [dataSource]);
 
-  // 2. Fetch Advisory based on activePlotId, cropName, acreage, current moisture and stage
   const fetchAdvisory = async () => {
     try {
       setLoading(true);
@@ -146,7 +143,7 @@ export default function SmartIrrigation() {
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 16px' }}>
-      {/* ALL FARMS & DEDICATED CROP SWITCHER STRIP */}
+      
       {allFarms.length > 0 && (
         <div style={{ marginBottom: '24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
@@ -249,7 +246,6 @@ export default function SmartIrrigation() {
         </div>
       )}
 
-      {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 style={{ fontSize: '28px', fontWeight: '700', color: '#1b4332', display: 'flex', alignItems: 'center', gap: '12px', margin: 0 }}>
@@ -308,7 +304,6 @@ export default function SmartIrrigation() {
         </div>
       </div>
 
-      {/* Weather Strip */}
       {weather && (
         <div style={{
           backgroundColor: weather.forecastRainNext24hMm >= 5 ? '#fef3c7' : '#e8f5e9',
@@ -352,7 +347,6 @@ export default function SmartIrrigation() {
         </div>
       )}
 
-      {/* Data Source Selector (Live Hardware Auto-Sync vs Manual Simulation) */}
       <div style={{
         backgroundColor: '#ffffff',
         padding: '20px',
@@ -373,7 +367,6 @@ export default function SmartIrrigation() {
             </div>
           </div>
 
-          {/* Toggle Buttons */}
           <div style={{ display: 'flex', gap: '8px' }}>
             <button
               onClick={() => setDataSource('live')}
@@ -417,7 +410,6 @@ export default function SmartIrrigation() {
           </div>
         </div>
 
-        {/* Live Hardware Status Banner */}
         {dataSource === 'live' && (
           <div style={{
             padding: '12px 16px',
@@ -515,10 +507,9 @@ export default function SmartIrrigation() {
         </div>
       </div>
 
-      {/* Advisory Output Cards */}
       {advisory && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
-          {/* Card 1: Volume */}
+          
           <div style={{
             backgroundColor: '#ffffff',
             borderRadius: '12px',
@@ -552,7 +543,6 @@ export default function SmartIrrigation() {
             </div>
           </div>
 
-          {/* Card 2: Urgency & Status */}
           <div style={{
             backgroundColor: '#ffffff',
             borderRadius: '12px',
@@ -586,7 +576,6 @@ export default function SmartIrrigation() {
             </div>
           </div>
 
-          {/* Card 3: Best Timing Window */}
           <div style={{
             backgroundColor: '#ffffff',
             borderRadius: '12px',

@@ -95,7 +95,6 @@ export default function CompareSoil() {
   const valuesA = profileA.values || profileA.baselineValues || {};
   const valuesB = profileB.values || profileB.baselineValues || {};
 
-  // Compute differences
   const moistureA = valuesA.moisture || 0;
   const moistureB = valuesB.moisture || 0;
   const moistureDiff = Math.round((moistureB - moistureA) * 10) / 10;
@@ -117,7 +116,6 @@ export default function CompareSoil() {
   const kA = valuesA.potassium || 0;
   const kB = valuesB.potassium || 0;
 
-  // Chart data for N-P-K
   const npkChartData = [
     {
       metric: 'Nitrogen (N)',
@@ -139,7 +137,6 @@ export default function CompareSoil() {
     }
   ];
 
-  // Chart data for Physical Telemetry (Moisture & Temperature)
   const physicalChartData = [
     {
       metric: 'Soil Moisture (%)',
@@ -198,7 +195,7 @@ export default function CompareSoil() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-      {/* Page Header */}
+      
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#0284c7', fontWeight: '700', fontSize: '0.85rem', textTransform: 'uppercase' }}>
           <GitCompare size={18} />
@@ -212,7 +209,6 @@ export default function CompareSoil() {
         </p>
       </div>
 
-      {/* Selectors Card */}
       <div className="card" style={{ borderTop: '4px solid #0284c7' }}>
         <h2 className="card-title">Select Soil Profiles to Compare Side-by-Side</h2>
         <div className="card-subtitle">
@@ -284,10 +280,9 @@ export default function CompareSoil() {
         </div>
       </div>
 
-      {/* KPI Differential Highlights */}
       {comparisonData && (
         <div className="grid-4" style={{ gap: '16px' }}>
-          {/* Card 1: Moisture Differential */}
+          
           <div className="card" style={{ padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
@@ -310,7 +305,6 @@ export default function CompareSoil() {
             </div>
           </div>
 
-          {/* Card 2: Nitrogen Available Lead */}
           <div className="card" style={{ padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
@@ -333,7 +327,6 @@ export default function CompareSoil() {
             </div>
           </div>
 
-          {/* Card 3: Soil Reaction / pH Balance */}
           <div className="card" style={{ padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
@@ -352,7 +345,6 @@ export default function CompareSoil() {
             </div>
           </div>
 
-          {/* Card 4: Temperature Differential */}
           <div className="card" style={{ padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
@@ -373,10 +365,9 @@ export default function CompareSoil() {
         </div>
       )}
 
-      {/* Visual Comparison Charts */}
       {comparisonData && (
         <div className="grid-2" style={{ gap: '20px' }}>
-          {/* Macronutrients Comparison Chart */}
+          
           <div className="card">
             <h3 className="card-title">Macronutrient Reserve Comparison (NPK kg/ha)</h3>
             <div className="card-subtitle">
@@ -404,7 +395,6 @@ export default function CompareSoil() {
             </div>
           </div>
 
-          {/* Physical Telemetry Comparison Chart */}
           <div className="card">
             <h3 className="card-title">Physical IoT Probe Telemetry</h3>
             <div className="card-subtitle">
@@ -434,7 +424,6 @@ export default function CompareSoil() {
         </div>
       )}
 
-      {/* Analytical Differential Matrix Table */}
       {comparisonData && (
         <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
           <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-light)' }}>
@@ -521,7 +510,6 @@ export default function CompareSoil() {
         </div>
       )}
 
-      {/* Crop Suitability Divergence & Agronomic Synthesis */}
       {comparisonData && (
         <div className="card" style={{ borderTop: '4px solid #10b981' }}>
           <h3 className="card-title">Crop Suitability Divergence Between Plots</h3>
@@ -530,7 +518,7 @@ export default function CompareSoil() {
           </div>
 
           <div className="grid-2" style={{ gap: '20px', marginTop: '16px' }}>
-            {/* Plot A Top Suited Crops */}
+            
             <div style={{ padding: '16px', borderRadius: '10px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                 <strong style={{ color: '#166534', fontSize: '1rem' }}>
@@ -560,7 +548,6 @@ export default function CompareSoil() {
               </div>
             </div>
 
-            {/* Plot B Top Suited Crops */}
             <div style={{ padding: '16px', borderRadius: '10px', backgroundColor: '#eef2ff', border: '1px solid #c7d2fe' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                 <strong style={{ color: '#3730a3', fontSize: '1rem' }}>
@@ -591,7 +578,6 @@ export default function CompareSoil() {
             </div>
           </div>
 
-          {/* Practical Remediation Guidance */}
           <div style={{ marginTop: '20px', padding: '16px', borderRadius: '8px', backgroundColor: 'var(--bg-subtle)', border: '1px solid var(--border-light)' }}>
             <h4 style={{ fontWeight: '700', color: 'var(--primary-900)', fontSize: '0.92rem', marginBottom: '6px' }}>
               Field Management Differential Advice:

@@ -57,7 +57,7 @@ export default function SoilDetail() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-      {/* Back button */}
+      
       <div>
         <Link to="/soil-to-crop" className="btn btn-secondary btn-sm" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
           <ArrowLeft size={16} />
@@ -65,7 +65,6 @@ export default function SoilDetail() {
         </Link>
       </div>
 
-      {/* Main Profile Header */}
       <div className="card" style={{ borderLeft: '6px solid var(--primary-700)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
           <div>
@@ -91,7 +90,6 @@ export default function SoilDetail() {
           {soil.shortDescription}
         </p>
 
-        {/* Disclaimer */}
         <div className="scientific-disclaimer">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '700', marginBottom: '2px' }}>
             <Info size={16} />
@@ -101,7 +99,6 @@ export default function SoilDetail() {
         </div>
       </div>
 
-      {/* Physical & Chemical Characteristics Matrix */}
       <div className="grid-3">
         <div className="card">
           <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -175,7 +172,6 @@ export default function SoilDetail() {
         </div>
       </div>
 
-      {/* Suitable Crops Grouped by Tiers */}
       <div>
         <h2 style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--primary-900)', marginBottom: '8px' }}>
           Crop Suitability for {soil.name}
@@ -184,7 +180,6 @@ export default function SoilDetail() {
           Crops agronomically matched by ICAR for this soil type, grouped by suitability level. Click any crop to test your soil or inspect requirements.
         </p>
 
-        {/* Tier 1: Highly Suitable */}
         {groupedCrops?.highlySuitable?.length > 0 && (
           <div style={{ marginBottom: '28px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
@@ -224,7 +219,6 @@ export default function SoilDetail() {
           </div>
         )}
 
-        {/* Tier 2: Suitable */}
         {groupedCrops?.suitable?.length > 0 && (
           <div style={{ marginBottom: '28px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
@@ -259,7 +253,6 @@ export default function SoilDetail() {
           </div>
         )}
 
-        {/* Tier 3: Suitable with Improvements */}
         {groupedCrops?.suitableWithImprovements?.length > 0 && (
           <div style={{ marginBottom: '28px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>

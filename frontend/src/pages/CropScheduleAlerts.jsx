@@ -118,7 +118,6 @@ export default function CropScheduleAlerts() {
   const [locLoading, setLocLoading] = useState(false);
   const [locSuccess, setLocSuccess] = useState('');
 
-  // Form edit states
   const [cropName, setCropName] = useState('Wheat');
   const [variety, setVariety] = useState('PBW 725');
   const [acreage, setAcreage] = useState(2.5);
@@ -132,13 +131,11 @@ export default function CropScheduleAlerts() {
   ]);
   const [showLocationModal, setShowLocationModal] = useState(false);
 
-  // Harvest modal state
   const [showHarvestModal, setShowHarvestModal] = useState(false);
   const [harvestYield, setHarvestYield] = useState(22);
   const [harvestNotes, setHarvestNotes] = useState('');
   const [harvesting, setHarvesting] = useState(false);
 
-  // Add Farm modal state
   const [showAddFarmModal, setShowAddFarmModal] = useState(false);
   const [newFarmName, setNewFarmName] = useState('');
   const [newDistrict, setNewDistrict] = useState('Ludhiana');
@@ -150,7 +147,6 @@ export default function CropScheduleAlerts() {
   const [newAssignedDeviceId, setNewAssignedDeviceId] = useState('DEVICE_001');
   const [addingFarm, setAddingFarm] = useState(false);
 
-  // Notification Rules accordion/panel state
   const [showNotifDrawer, setShowNotifDrawer] = useState(false);
   const [notifConfig, setNotifConfig] = useState({
     enabled: true,
@@ -167,7 +163,6 @@ export default function CropScheduleAlerts() {
   });
   const [savingNotif, setSavingNotif] = useState(false);
 
-  // Fetch all registered farms
   const fetchAllFarms = async () => {
     try {
       const res = await axios.get('/api/advisory/farms');
@@ -183,7 +178,6 @@ export default function CropScheduleAlerts() {
     fetchAllFarms();
   }, []);
 
-  // 1. Live Hardware Polling from Arduino Pin A0
   useEffect(() => {
     let active = true;
     const fetchLatestA0 = async () => {
@@ -222,7 +216,6 @@ export default function CropScheduleAlerts() {
     };
   }, [isLiveMode, assignedDeviceId]);
 
-  // 2. Fetch Schedule and Evaluated Tiered Alerts for activePlotId
   const fetchScheduleAndAlerts = async () => {
     try {
       setLoading(true);
@@ -261,7 +254,6 @@ export default function CropScheduleAlerts() {
     fetchScheduleAndAlerts();
   }, [activePlotId, currentMoisture]);
 
-  // 3. Auto-detect GPS location
   const handleAutoDetectGPS = () => {
     if (!navigator.geolocation) {
       alert(lang === 'hi' ? 'ब्राउज़र में जीपीएस सपोर्ट नहीं है।' : 'Geolocation is not supported by your browser.');
@@ -297,7 +289,6 @@ export default function CropScheduleAlerts() {
     );
   };
 
-  // 4. Manual District Selector
   const handleSelectDistrict = async (distObj) => {
     try {
       setLocLoading(true);
@@ -319,7 +310,6 @@ export default function CropScheduleAlerts() {
     }
   };
 
-  // 5. Save Crop Schedule Edits & Recalculate Instantly
   const handleSaveSchedule = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -356,7 +346,6 @@ export default function CropScheduleAlerts() {
     }
   };
 
-  // 6. Mark Crop as Harvested (Archive Season)
   const handleHarvestSubmit = async (e) => {
     e.preventDefault();
     setHarvesting(true);
@@ -384,7 +373,6 @@ export default function CropScheduleAlerts() {
     }
   };
 
-  // 7. Save Notification Rules for Current Crop & Farm
   const handleSaveNotifications = async (e) => {
     e.preventDefault();
     setSavingNotif(true);
@@ -412,7 +400,6 @@ export default function CropScheduleAlerts() {
     }
   };
 
-  // 8. Add New Farm
   const handleAddFarmSubmit = async (e) => {
     e.preventDefault();
     setAddingFarm(true);
@@ -461,7 +448,6 @@ export default function CropScheduleAlerts() {
   const lakhLiters = (liters / 100000).toFixed(2);
   const tankerCount = Math.round(liters / 10000);
 
-  // 9. Friendly Spoken Voice Audio Narration for Farmers
   const handleVoiceNarration = () => {
     if (!data?.alert) return;
     const crop = cropDisplayName;
@@ -496,7 +482,6 @@ export default function CropScheduleAlerts() {
     ? new Date(data.expectedHarvestDate).toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
     : '—';
 
-  // Robust bilingual text resolvers
   const cropDisplayName = lang === 'hi'
     ? (CROP_NAME_MAP[sched?.cropName]?.hi || (sched?.cropName === 'Wheat' ? 'गेहूं' : sched?.cropName === 'Mustard' ? 'सरसों' : sched?.cropName === 'Rice' ? 'बासमती धान' : sched?.cropName === 'Maize' ? 'मक्का' : sched?.cropName === 'Cotton' ? 'कपास' : sched?.cropName) || 'गेहूं')
     : (CROP_NAME_MAP[sched?.cropName]?.en || sched?.cropName || 'Wheat');
@@ -576,7 +561,7 @@ export default function CropScheduleAlerts() {
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 16px' }}>
-      {/* MULTI-FARM & MULTI-CROP SWITCHER CARDS STRIP */}
+      
       <div style={{ marginBottom: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
           <div>
@@ -636,7 +621,6 @@ export default function CropScheduleAlerts() {
           </div>
         </div>
 
-        {/* Horizontal Farm & Crop Cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: '14px' }}>
           {allFarms.map((farm) => {
             const isSelected = farm.plotId === activePlotId;
@@ -720,7 +704,6 @@ export default function CropScheduleAlerts() {
                   <span>Day {farm.das} / {farm.totalDurationDays || 135}</span>
                 </div>
 
-                {/* Move inside button / Selected indicator */}
                 <div style={{ marginTop: '10px' }}>
                   {isSelected ? (
                     <div style={{
@@ -763,7 +746,6 @@ export default function CropScheduleAlerts() {
         </div>
       </div>
 
-      {/* Title & Quick Actions */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', flexWrap: 'wrap', gap: '14px' }}>
         <div>
           <h1 style={{ fontSize: '26px', fontWeight: '800', color: '#1b4332', display: 'flex', alignItems: 'center', gap: '12px', margin: 0, flexWrap: 'wrap' }}>
@@ -862,7 +844,6 @@ export default function CropScheduleAlerts() {
         </div>
       </div>
 
-      {/* CROP-SPECIFIC NOTIFICATION RULES DRAWER (COLLAPSIBLE) */}
       {showNotifDrawer && (
         <div style={{
           backgroundColor: '#f8fafc',
@@ -897,7 +878,7 @@ export default function CropScheduleAlerts() {
           </div>
 
           <form onSubmit={handleSaveNotifications} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px' }}>
-            {/* Hardware Device Selection Block */}
+            
             <div style={{
               gridColumn: '1 / -1',
               backgroundColor: '#ffffff',
@@ -943,7 +924,6 @@ export default function CropScheduleAlerts() {
                 <option value="NONE">{lang === 'hi' ? 'कोई डिवाइस नहीं (केवल टाइमलाइन मोड)' : 'No Device (Timeline Tracking Only)'}</option>
               </select>
 
-              {/* CRITICAL CONDITIONAL WARNING IF NO DEVICE AVAILABLE */}
               {assignedDeviceId === 'NONE' ? (
                 <div style={{
                   marginTop: '12px',
@@ -979,7 +959,6 @@ export default function CropScheduleAlerts() {
               )}
             </div>
 
-            {/* Threshold 1: Critical */}
             <div style={{
               backgroundColor: '#ffffff',
               border: '1px solid #e2e8f0',
@@ -1015,7 +994,6 @@ export default function CropScheduleAlerts() {
               </div>
             </div>
 
-            {/* Threshold 2: Sooner Notice */}
             <div style={{
               backgroundColor: '#ffffff',
               border: '1px solid #e2e8f0',
@@ -1051,7 +1029,6 @@ export default function CropScheduleAlerts() {
               </div>
             </div>
 
-            {/* Smart Toggles */}
             <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label style={{
                 display: 'flex',
@@ -1105,7 +1082,6 @@ export default function CropScheduleAlerts() {
               </label>
             </div>
 
-            {/* Action Button */}
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <button
                 type="submit"
@@ -1133,7 +1109,6 @@ export default function CropScheduleAlerts() {
         </div>
       )}
 
-      {/* Success Alert Banner on Update */}
       {saveSuccessMsg && (
         <div style={{
           backgroundColor: '#ecfdf5',
@@ -1153,7 +1128,6 @@ export default function CropScheduleAlerts() {
         </div>
       )}
 
-      {/* GPS Farm Location Header Card */}
       <div style={{
         backgroundColor: '#ffffff',
         borderRadius: '12px',
@@ -1239,7 +1213,6 @@ export default function CropScheduleAlerts() {
         </div>
       </div>
 
-      {/* Location Picker Dropdown Card */}
       {showLocationModal && (
         <div style={{
           backgroundColor: '#f8fafc',
@@ -1274,7 +1247,6 @@ export default function CropScheduleAlerts() {
         </div>
       )}
 
-      {/* CROP SEASON SUITABILITY ADVISORY (LIVE SEASONAL WINDOW CHECK) */}
       {data?.seasonSuitability && (
         <div style={{ marginBottom: '20px' }}>
           <SeasonSuitabilityAdvisory
@@ -1285,7 +1257,6 @@ export default function CropScheduleAlerts() {
         </div>
       )}
 
-      {/* DYNAMIC TIERED ALERT BANNER */}
       {alertData && (
         <div style={{
           backgroundColor: isTimelineOnly ? '#f8fafc' : isCritical ? '#fef2f2' : isSooner ? '#fffbeb' : isRain ? '#eff6ff' : isHarvest ? '#fff7ed' : '#f0fdf4',
@@ -1340,7 +1311,6 @@ export default function CropScheduleAlerts() {
                   : (lang === 'hi' ? `वर्तमान सेंसर नमी: ${currentMoisture}%` : `Current A0 Moisture: ${currentMoisture}%`)}
               </span>
 
-              {/* Temperature Badge with GPS location fallback */}
               <span style={{
                 fontSize: '12px',
                 fontWeight: '700',
@@ -1372,7 +1342,6 @@ export default function CropScheduleAlerts() {
               {displayAlertDescription}
             </p>
 
-            {/* Prominent Warning Callout when No Live Arduino is connected */}
             {isTimelineOnly && (
               <div style={{
                 backgroundColor: '#fff7ed',
@@ -1401,7 +1370,6 @@ export default function CropScheduleAlerts() {
               </div>
             )}
 
-            {/* FARMER QUICK DECISION 4-PILL SUMMARY */}
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
@@ -1409,7 +1377,7 @@ export default function CropScheduleAlerts() {
               marginTop: '12px',
               marginBottom: '14px'
             }}>
-              {/* Question 1: Do I need to irrigate? */}
+              
               <div style={{
                 backgroundColor: '#ffffff',
                 border: '1px solid #cbd5e1',
@@ -1433,7 +1401,6 @@ export default function CropScheduleAlerts() {
                 </div>
               </div>
 
-              {/* Question 2: How long to run the pump? */}
               <div style={{
                 backgroundColor: '#ffffff',
                 border: '1px solid #cbd5e1',
@@ -1452,7 +1419,6 @@ export default function CropScheduleAlerts() {
                 </div>
               </div>
 
-              {/* Question 3: Best Time? */}
               <div style={{
                 backgroundColor: '#ffffff',
                 border: '1px solid #cbd5e1',
@@ -1467,7 +1433,6 @@ export default function CropScheduleAlerts() {
                 </div>
               </div>
 
-              {/* Question 4: Weather/Rain Risk? */}
               <div style={{
                 backgroundColor: '#ffffff',
                 border: '1px solid #cbd5e1',
@@ -1490,7 +1455,6 @@ export default function CropScheduleAlerts() {
               </div>
             </div>
 
-            {/* FARMER 3-STEP ACTION PLAN */}
             <div style={{
               backgroundColor: '#ffffff',
               padding: '14px 18px',
@@ -1531,7 +1495,6 @@ export default function CropScheduleAlerts() {
         </div>
       )}
 
-      {/* SMART IRRIGATION & WATER BUDGETING ASSISTANT (IN LITERS) */}
       <div style={{
         backgroundColor: '#ffffff',
         borderRadius: '14px',
@@ -1577,7 +1540,6 @@ export default function CropScheduleAlerts() {
           </Link>
         </div>
 
-        {/* Live Device Status Warning Banner */}
         {isTimelineOnly && (
           <div style={{
             backgroundColor: '#f8fafc',
@@ -1603,7 +1565,6 @@ export default function CropScheduleAlerts() {
           </div>
         )}
 
-        {/* Rain Forecast Banner (Deferred Alert) */}
         {data?.weather?.forecastRainNext24hMm >= 5 && (
           <div style={{
             backgroundColor: '#fef3c7',
@@ -1631,7 +1592,6 @@ export default function CropScheduleAlerts() {
           </div>
         )}
 
-        {/* Interactive Sensor Moisture Slider & Mode Toggle */}
         <div style={{
           backgroundColor: '#f8fafc',
           border: '1px solid #e2e8f0',
@@ -1718,9 +1678,8 @@ export default function CropScheduleAlerts() {
           </div>
         </div>
 
-        {/* 3 Core Metric Cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px' }}>
-          {/* Card 1: Water Volume in Liters */}
+          
           <div style={{
             backgroundColor: '#f0fdf4',
             border: '1.5px solid #86efac',
@@ -1754,7 +1713,6 @@ export default function CropScheduleAlerts() {
             </div>
           </div>
 
-          {/* Card 2: Urgency */}
           <div style={{
             backgroundColor: data?.irrigation?.urgency === 'CRITICAL' || data?.irrigation?.urgency === 'URGENT' ? '#fef2f2' : data?.irrigation?.urgency === 'MODERATE' ? '#fffbeb' : data?.irrigation?.urgency === 'RAIN_SUPPRESSED' ? '#eff6ff' : '#f0fdf4',
             border: `1.5px solid ${data?.irrigation?.urgency === 'CRITICAL' || data?.irrigation?.urgency === 'URGENT' ? '#fca5a5' : data?.irrigation?.urgency === 'MODERATE' ? '#fde68a' : data?.irrigation?.urgency === 'RAIN_SUPPRESSED' ? '#bfdbfe' : '#bbf7d0'}`,
@@ -1790,7 +1748,6 @@ export default function CropScheduleAlerts() {
             </div>
           </div>
 
-          {/* Card 3: Watering Window */}
           <div style={{
             backgroundColor: '#faf5ff',
             border: '1.5px solid #e9d5ff',
@@ -1819,7 +1776,6 @@ export default function CropScheduleAlerts() {
         </div>
       </div>
 
-      {/* CROP LIFECYCLE PROGRESS & HARVEST COUNTDOWN CARD */}
       {data && (
         <div style={{
           backgroundColor: '#ffffff',
@@ -1869,7 +1825,6 @@ export default function CropScheduleAlerts() {
             </div>
           </div>
 
-          {/* Lifecycle Progress Bar */}
           <div style={{ margin: '16px 0 14px 0' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: '700', color: '#334155', marginBottom: '6px' }}>
               <span>
@@ -1891,7 +1846,6 @@ export default function CropScheduleAlerts() {
             </div>
           </div>
 
-          {/* Current Stage Indicator Banner */}
           {data.currentStage && (
             <div style={{
               backgroundColor: '#f8fafc',
@@ -1936,7 +1890,6 @@ export default function CropScheduleAlerts() {
             </div>
           )}
 
-          {/* Growth Stages Timeline Grid */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px', marginTop: '16px' }}>
             {(sched?.growthStages || []).map((stage, idx) => {
               const isCurrent = data?.currentStage?.stageName === stage.stageName;
@@ -1966,7 +1919,6 @@ export default function CropScheduleAlerts() {
         </div>
       )}
 
-      {/* Sowing & Threshold Settings Form */}
       <div style={{
         backgroundColor: '#ffffff',
         borderRadius: '12px',
@@ -2091,7 +2043,6 @@ export default function CropScheduleAlerts() {
         </form>
       </div>
 
-      {/* ARCHIVED HARVEST HISTORY SECTION */}
       {data?.archivedHarvests && data.archivedHarvests.length > 0 && (
         <div style={{
           backgroundColor: '#ffffff',
@@ -2146,7 +2097,6 @@ export default function CropScheduleAlerts() {
         </div>
       )}
 
-      {/* HARVEST MODAL DIALOG */}
       {showHarvestModal && (
         <div style={{
           position: 'fixed',
@@ -2247,7 +2197,6 @@ export default function CropScheduleAlerts() {
         </div>
       )}
 
-      {/* ADD NEW FARM MODAL DIALOG */}
       {showAddFarmModal && (
         <div style={{
           position: 'fixed',

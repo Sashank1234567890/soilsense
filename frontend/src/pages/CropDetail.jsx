@@ -37,14 +37,12 @@ export default function CropDetail() {
   const [crop, setCrop] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Testing Flow State
   const [isTestModalOpen, setIsTestModalOpen] = useState(false);
   const [testMode, setTestMode] = useState('manual_lab'); // 'manual_lab', 'hardware', 'existing_profile'
   const [iotConnected, setIotConnected] = useState(false);
   const [profiles, setProfiles] = useState([]);
   const [selectedProfileId, setSelectedProfileId] = useState('');
 
-  // Form Inputs for Soil Test
   const [testForm, setTestForm] = useState({
     plotId: 'PLOT_001',
     moisture: 48.0,
@@ -56,7 +54,6 @@ export default function CropDetail() {
     texture: 'Loam'
   });
 
-  // Test Evaluation Result
   const [evaluating, setEvaluating] = useState(false);
   const [evalResult, setEvalResult] = useState(null);
   const [improvementPlan, setImprovementPlan] = useState(null);
@@ -110,7 +107,6 @@ export default function CropDetail() {
     }));
   };
 
-  // Submit test and trigger crop-specific suitability evaluation
   const handleRunSuitabilityTest = async (e) => {
     if (e) e.preventDefault();
 
@@ -160,7 +156,6 @@ export default function CropDetail() {
 
       const { plotId: testPlotId, ...cleanValues } = finalValues;
 
-      // 1. Create Soil Test in MongoDB with selectedCropId retained
       const testRes = await createSoilTest({
         plotId: testPlotId || testForm.plotId || 'PLOT_001',
         selectedCropId: crop._id,
@@ -179,11 +174,9 @@ export default function CropDetail() {
       const savedTest = testRes.data.data;
       setActiveSoilTest(savedTest);
 
-      // 2. Evaluate crop-specific suitability
       const evalRes = await evaluateCropSpecific(savedTest._id, crop._id);
       setEvalResult(evalRes.data.data);
 
-      // 3. Generate crop-specific soil improvement plan
       const planRes = await createImprovementPlan({
         soilTestId: savedTest._id,
         targetCropId: crop._id
@@ -193,7 +186,6 @@ export default function CropDetail() {
       setEvaluating(false);
       setIsTestModalOpen(false);
 
-      // Scroll to result view
       setTimeout(() => {
         const elem = document.getElementById('suitability-results-section');
         if (elem) elem.scrollIntoView({ behavior: 'smooth' });
@@ -229,7 +221,7 @@ export default function CropDetail() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-      {/* Back button */}
+      
       <div>
         <Link to="/crop-to-soil" className="btn btn-secondary btn-sm" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
           <ArrowLeft size={16} />
@@ -237,7 +229,6 @@ export default function CropDetail() {
         </Link>
       </div>
 
-      {/* Main Crop Banner */}
       <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
         <div style={{ display: 'flex', flexWrap: 'wrap' }}>
           {crop.image && (
@@ -265,7 +256,6 @@ export default function CropDetail() {
                   </div>
                 </div>
 
-                {/* THE MOST IMPORTANT FEATURE BUTTON */}
                 <button
                   onClick={() => setIsTestModalOpen(true)}
                   className="btn btn-accent btn-lg"
@@ -303,14 +293,13 @@ export default function CropDetail() {
         </div>
       </div>
 
-      {/* Ideal Requirements Grid */}
       <div>
         <h2 style={{ fontSize: '1.35rem', fontWeight: '800', color: 'var(--primary-900)', marginBottom: '16px' }}>
           Physiological & Soil Requirements
         </h2>
 
         <div className="grid-3">
-          {/* pH & Moisture */}
+          
           <div className="card">
             <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Droplets size={20} color="var(--primary-700)" />
@@ -338,7 +327,6 @@ export default function CropDetail() {
             </div>
           </div>
 
-          {/* Temperature & Physical Textures */}
           <div className="card">
             <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Thermometer size={20} color="var(--primary-700)" />
@@ -363,7 +351,6 @@ export default function CropDetail() {
             </div>
           </div>
 
-          {/* NPK Macronutrients */}
           <div className="card">
             <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Layers size={20} color="var(--primary-700)" />
@@ -387,7 +374,6 @@ export default function CropDetail() {
         </div>
       </div>
 
-      {/* Agronomic Practice Notes */}
       <div className="grid-2">
         <div className="card">
           <h3 className="card-title">Fertilizer Considerations</h3>
@@ -403,12 +389,9 @@ export default function CropDetail() {
         </div>
       </div>
 
-      {/* =========================================================================
-          SUITABILITY TEST RESULTS SECTION (Rendered dynamically after running test)
-          ========================================================================= */}
       {evalResult && (
         <div id="suitability-results-section" style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginTop: '12px' }}>
-          {/* Result Banner */}
+          
           <div className="card" style={{
             borderLeft: `6px solid ${
               evalResult.overallSuitability === 'Suitable' ? '#15803d' :
@@ -454,7 +437,6 @@ export default function CropDetail() {
               )}
             </div>
 
-            {/* Quick Actions Bar */}
             <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', marginTop: '24px', paddingTop: '20px', borderTop: '1px solid var(--border-light)' }}>
               <Link
                 to={`/test-your-soil?autoTestId=${activeSoilTest?._id}`}
@@ -478,7 +460,6 @@ export default function CropDetail() {
             </div>
           </div>
 
-          {/* Parameter Comparison Table */}
           <div className="card">
             <h3 className="card-title">Parameter-by-Parameter Comparison Table</h3>
             <div className="card-subtitle">
@@ -528,7 +509,6 @@ export default function CropDetail() {
             </div>
           </div>
 
-          {/* Soil Improvement Plan & Practicality Section */}
           {improvementPlan && (
             <div id="improvement-plan-details" className="card" style={{ borderTop: '4px solid #40916c' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '14px', marginBottom: '16px' }}>
@@ -546,7 +526,6 @@ export default function CropDetail() {
                 <strong>Agronomic Evaluation: </strong>{improvementPlan.practicalityExplanation}
               </div>
 
-              {/* Deficiencies and Excesses Breakdown */}
               <div className="grid-2">
                 <div>
                   <h4 style={{ fontWeight: '700', color: 'var(--primary-900)', marginBottom: '10px' }}>
@@ -591,7 +570,6 @@ export default function CropDetail() {
                 </div>
               </div>
 
-              {/* Alternative Crops Recommendation */}
               {improvementPlan.alternativeCrops?.length > 0 && (
                 <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid var(--border-light)' }}>
                   <h4 style={{ fontWeight: '700', color: 'var(--primary-900)', marginBottom: '8px' }}>
@@ -627,9 +605,6 @@ export default function CropDetail() {
         </div>
       )}
 
-      {/* =========================================================================
-          TEST MY SOIL FOR THIS CROP - INTERACTIVE MODAL / DIALOG
-          ========================================================================= */}
       {isTestModalOpen && (
         <div style={{
           position: 'fixed',
@@ -674,7 +649,6 @@ export default function CropDetail() {
               </button>
             </div>
 
-            {/* Select Data Source Mode */}
             <div style={{ marginBottom: '20px' }}>
               <label style={{ fontSize: '0.85rem', fontWeight: '700', color: 'var(--text-secondary)', display: 'block', marginBottom: '8px' }}>
                 Select Soil Telemetry Source

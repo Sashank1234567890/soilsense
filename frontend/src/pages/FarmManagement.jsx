@@ -68,7 +68,6 @@ export default function FarmManagement() {
   });
   const [savingNotif, setSavingNotif] = useState(false);
 
-  // Fetch all farms summary
   const fetchFarms = async (silent = false) => {
     try {
       if (!silent) setLoading(true);
@@ -85,7 +84,6 @@ export default function FarmManagement() {
 
   useEffect(() => {
     fetchFarms(false);
-    // Real-time auto-synchronization: poll farms every 3 seconds so all farms assigned to Arduino update automatically
     const interval = setInterval(() => {
       fetchFarms(true);
     }, 3000);
@@ -127,7 +125,6 @@ export default function FarmManagement() {
     }
   };
 
-  // Open Notification Config Modal for specific farm
   const handleOpenNotifModal = (farm) => {
     setSelectedFarmForNotif(farm);
     setSelectedFarmDeviceId(farm.assignedDeviceId || (farm.hasLiveDevice === false ? 'NONE' : 'DEVICE_001'));
@@ -148,7 +145,6 @@ export default function FarmManagement() {
     setShowNotifModal(true);
   };
 
-  // Save Notification Config
   const handleSaveNotifications = async (e) => {
     e.preventDefault();
     if (!selectedFarmForNotif) return;
@@ -176,7 +172,6 @@ export default function FarmManagement() {
     }
   };
 
-  // Delete Farm
   const handleDeleteFarm = async (plotId) => {
     if (!window.confirm(lang === 'hi' ? 'क्या आप इस खेत को हटाना चाहते हैं?' : 'Are you sure you want to delete this farm?')) return;
     try {
@@ -193,7 +188,7 @@ export default function FarmManagement() {
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 16px' }}>
-      {/* Header */}
+      
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 style={{ fontSize: '26px', fontWeight: '800', color: '#1b4332', display: 'flex', alignItems: 'center', gap: '12px', margin: 0 }}>
@@ -229,7 +224,6 @@ export default function FarmManagement() {
         </button>
       </div>
 
-      {/* Success Toast */}
       {successToast && (
         <div style={{
           backgroundColor: '#ecfdf5',
@@ -249,7 +243,6 @@ export default function FarmManagement() {
         </div>
       )}
 
-      {/* Farm Metrics Summary Bar */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '28px' }}>
         <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '18px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
           <div style={{ fontSize: '12px', color: '#64748b', fontWeight: '700', textTransform: 'uppercase' }}>
@@ -289,7 +282,6 @@ export default function FarmManagement() {
         </div>
       </div>
 
-      {/* Farms List Cards Grid */}
       <div style={{ marginBottom: '32px' }}>
         <h2 style={{ fontSize: '19px', fontWeight: '800', color: '#0f172a', marginBottom: '16px' }}>
           {lang === 'hi' ? 'खेत एवं सक्रिय फसल सूची' : 'Your Farms & Active Crops'}
@@ -328,7 +320,7 @@ export default function FarmManagement() {
                   }}
                 >
                   <div>
-                    {/* Top Farm Header */}
+                    
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                       <div>
                         <span style={{
@@ -393,7 +385,6 @@ export default function FarmManagement() {
                         </div>
                       </div>
 
-                      {/* Notification Quick Status */}
                       <button
                         onClick={() => handleOpenNotifModal(farm)}
                         title={lang === 'hi' ? 'इस खेत के अलर्ट नियम सेट करें' : 'Configure notifications for this farm'}
@@ -416,7 +407,6 @@ export default function FarmManagement() {
                       </button>
                     </div>
 
-                    {/* Crop & Lifecycle Strip */}
                     <div style={{
                       backgroundColor: '#f8fafc',
                       borderRadius: '10px',
@@ -446,7 +436,6 @@ export default function FarmManagement() {
                         {lang === 'hi' ? 'अवस्था:' : 'Stage:'} <strong>{farm.currentStage?.stageName}</strong>
                       </div>
 
-                      {/* Mini Progress Bar */}
                       <div style={{ width: '100%', height: '6px', backgroundColor: '#e2e8f0', borderRadius: '3px', overflow: 'hidden' }}>
                         <div style={{
                           width: `${farm.lifecycleProgressPercent || 20}%`,
@@ -461,7 +450,6 @@ export default function FarmManagement() {
                       </div>
                     </div>
 
-                    {/* Live Condition & Alert Badge */}
                     <div style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -500,7 +488,6 @@ export default function FarmManagement() {
                     </div>
                   </div>
 
-                  {/* Card Bottom Actions */}
                   <div style={{ display: 'flex', gap: '8px', borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}>
                     <button
                       onClick={() => navigate(`/crop-schedule?plotId=${farm.plotId}`)}
@@ -563,7 +550,6 @@ export default function FarmManagement() {
         )}
       </div>
 
-      {/* MODAL 1: ADD NEW FARM */}
       {showAddModal && (
         <div style={{
           position: 'fixed',
@@ -776,7 +762,6 @@ export default function FarmManagement() {
         </div>
       )}
 
-      {/* MODAL 2: CONFIGURE CROP NOTIFICATIONS */}
       {showNotifModal && selectedFarmForNotif && (
         <div style={{
           position: 'fixed',
@@ -814,7 +799,7 @@ export default function FarmManagement() {
             </div>
 
             <form onSubmit={handleSaveNotifications} style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '16px' }}>
-              {/* Hardware Device Selection */}
+              
               <div style={{ backgroundColor: '#f0f9ff', border: '1.5px solid #bae6fd', borderRadius: '10px', padding: '12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
                   <Cpu size={16} color="#0284c7" />
@@ -840,7 +825,6 @@ export default function FarmManagement() {
                   <option value="NONE">{lang === 'hi' ? 'कोई डिवाइस नहीं (केवल समय-सीमा मोड)' : 'No Device (Timeline Tracking Only)'}</option>
                 </select>
 
-                {/* Warning when No Device selected */}
                 {selectedFarmDeviceId === 'NONE' && (
                   <div style={{
                     backgroundColor: '#fff7ed',
@@ -866,7 +850,6 @@ export default function FarmManagement() {
                 )}
               </div>
 
-              {/* Master Toggle */}
               <div style={{
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -894,7 +877,6 @@ export default function FarmManagement() {
                 />
               </div>
 
-              {/* Threshold 1: Critical Wilting */}
               <div style={{
                 border: '1px solid #e2e8f0',
                 borderRadius: '8px',
@@ -924,7 +906,6 @@ export default function FarmManagement() {
                 </div>
               </div>
 
-              {/* Threshold 2: Sooner Notice */}
               <div style={{
                 border: '1px solid #e2e8f0',
                 borderRadius: '8px',
@@ -954,7 +935,6 @@ export default function FarmManagement() {
                 </div>
               </div>
 
-              {/* Toggles Group */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <label style={{
                   display: 'flex',
@@ -1005,7 +985,6 @@ export default function FarmManagement() {
                 </label>
               </div>
 
-              {/* Channels (SMS & Voice) */}
               <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                 <div style={{ fontWeight: '700', fontSize: '12px', color: '#475569', marginBottom: '8px', textTransform: 'uppercase' }}>
                   {lang === 'hi' ? 'अलर्ट डिलीवरी माध्यम (Channels)' : 'Notification Delivery Channels'}
@@ -1050,7 +1029,6 @@ export default function FarmManagement() {
                 )}
               </div>
 
-              {/* Submit Buttons */}
               <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
                 <button
                   type="button"

@@ -35,7 +35,7 @@ export default function FertilizerPrescription() {
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 16px' }}>
-      {/* Title */}
+      
       <div style={{ marginBottom: '24px' }}>
         <h1 style={{ fontSize: '28px', fontWeight: '700', color: '#1b4332', display: 'flex', alignItems: 'center', gap: '12px', margin: 0 }}>
           <Sprout size={32} color="#2d6a4f" />
@@ -48,7 +48,6 @@ export default function FertilizerPrescription() {
         </p>
       </div>
 
-      {/* Stage Selector Timeline */}
       <div style={{
         backgroundColor: '#ffffff',
         borderRadius: '12px',
@@ -92,10 +91,9 @@ export default function FertilizerPrescription() {
         </div>
       </div>
 
-      {/* Main Prescription Grid */}
       {data && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
-          {/* Chemical Fertilizer Column */}
+          
           <div style={{
             backgroundColor: '#ffffff',
             borderRadius: '12px',
@@ -143,7 +141,6 @@ export default function FertilizerPrescription() {
             ))}
           </div>
 
-          {/* Organic Alternatives Column */}
           <div style={{
             backgroundColor: '#ffffff',
             borderRadius: '12px',

@@ -46,7 +46,7 @@ export default function Login() {
       flexDirection: 'column',
       gap: '24px'
     }}>
-      {/* Brand Header */}
+      
       <div style={{ textAlign: 'center' }}>
         <div style={{
           display: 'inline-flex',
@@ -69,7 +69,6 @@ export default function Login() {
         </p>
       </div>
 
-      {/* 1-Click Demo Profiles for Evaluators */}
       <div className="card" style={{
         border: '1px solid var(--primary-200)',
         backgroundColor: '#f0fdf4',
@@ -155,7 +154,6 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Manual Login Card */}
       <div className="card" style={{ padding: '28px' }}>
         <h2 style={{ fontSize: '1.15rem', fontWeight: '800', color: 'var(--primary-900)', marginBottom: '16px' }}>
           Registered Account Login

@@ -24,7 +24,7 @@ export default function Reports() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Header */}
+      
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#166534', fontWeight: '700', fontSize: '0.85rem', textTransform: 'uppercase' }}>
@@ -45,7 +45,6 @@ export default function Reports() {
         </Link>
       </div>
 
-      {/* Reports List */}
       {loading ? (
         <div style={{ padding: '60px', textAlign: 'center', color: 'var(--text-muted)' }}>
           Loading analysis reports...

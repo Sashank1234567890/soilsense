@@ -47,7 +47,7 @@ export default function Register() {
       flexDirection: 'column',
       gap: '24px'
     }}>
-      {/* Brand Header */}
+      
       <div style={{ textAlign: 'center' }}>
         <div style={{
           display: 'inline-flex',

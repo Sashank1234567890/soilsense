@@ -92,7 +92,6 @@ export default function SeasonSuitabilityAdvisory({ cropName = 'Wheat', sowingDa
   const [data, setData] = useState(null);
 
   useEffect(() => {
-    // 1. Instant local calculation
     const d = sowingDate ? new Date(sowingDate) : new Date();
     const sowMonth = d.getMonth() + 1;
     const meta = LOCAL_SEASON_META[cropName] || LOCAL_SEASON_META.Wheat;
@@ -118,7 +117,6 @@ export default function SeasonSuitabilityAdvisory({ cropName = 'Wheat', sowingDa
     };
     setData(localResult);
 
-    // 2. Fetch from backend API
     const dateStr = sowingDate || new Date().toISOString().split('T')[0];
     axios.get(`/api/advisory/season-check?cropName=${encodeURIComponent(cropName)}&sowingDate=${encodeURIComponent(dateStr)}`)
       .then(res => {

@@ -23,7 +23,7 @@ export default function AboutProject() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-      {/* Hero Academic Header */}
+      
       <div style={{
         background: 'linear-gradient(135deg, #064e3b 0%, #065f46 60%, #047857 100%)',
         borderRadius: '16px',
@@ -95,7 +95,6 @@ export default function AboutProject() {
           </div>
         </div>
 
-        {/* Decorative background shape */}
         <div style={{
           position: 'absolute',
           right: '-50px',
@@ -108,7 +107,6 @@ export default function AboutProject() {
         }} />
       </div>
 
-      {/* Interactive Navigation Tabs */}
       <div style={{ display: 'flex', gap: '8px', borderBottom: '2px solid var(--border-light)', paddingBottom: '2px', flexWrap: 'wrap' }}>
         {[
           { id: 'architecture', label: '1. System & IoT Architecture', icon: Layers },
@@ -147,7 +145,6 @@ export default function AboutProject() {
         })}
       </div>
 
-      {/* TAB 1: System & IoT Architecture */}
       {activeTab === 'architecture' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <div className="card" style={{ borderLeft: '6px solid var(--primary-700)' }}>
@@ -160,7 +157,6 @@ export default function AboutProject() {
             </p>
           </div>
 
-          {/* End-to-End Ingestion Flow Diagram */}
           <div className="card">
             <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <GitBranch size={20} color="var(--primary-700)" />
@@ -232,7 +228,6 @@ export default function AboutProject() {
         </div>
       )}
 
-      {/* TAB 2: Advanced DBMS Design Decisions */}
       {activeTab === 'dbms' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div className="card">
@@ -245,7 +240,7 @@ export default function AboutProject() {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
-              {/* Decision 1 */}
+              
               <div style={{ padding: '18px', backgroundColor: 'var(--bg-subtle)', borderRadius: '10px', border: '1px solid var(--border-light)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                   <h3 style={{ fontSize: '1.05rem', fontWeight: '800', color: 'var(--primary-900)' }}>
@@ -259,7 +254,6 @@ export default function AboutProject() {
                 </p>
               </div>
 
-              {/* Decision 2 */}
               <div style={{ padding: '18px', backgroundColor: 'var(--bg-subtle)', borderRadius: '10px', border: '1px solid var(--border-light)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                   <h3 style={{ fontSize: '1.05rem', fontWeight: '800', color: 'var(--primary-900)' }}>
@@ -275,7 +269,6 @@ export default function AboutProject() {
                 </p>
               </div>
 
-              {/* Decision 3 */}
               <div style={{ padding: '18px', backgroundColor: 'var(--bg-subtle)', borderRadius: '10px', border: '1px solid var(--border-light)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                   <h3 style={{ fontSize: '1.05rem', fontWeight: '800', color: 'var(--primary-900)' }}>
@@ -290,7 +283,6 @@ export default function AboutProject() {
                 </p>
               </div>
 
-              {/* Decision 4 */}
               <div style={{ padding: '18px', backgroundColor: 'var(--bg-subtle)', borderRadius: '10px', border: '1px solid var(--border-light)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                   <h3 style={{ fontSize: '1.05rem', fontWeight: '800', color: 'var(--primary-900)' }}>
@@ -307,7 +299,6 @@ export default function AboutProject() {
         </div>
       )}
 
-      {/* TAB 3: Agronomic Suitability Engine */}
       {activeTab === 'algorithms' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div className="card">
@@ -359,7 +350,6 @@ export default function AboutProject() {
                 </div>
               </div>
 
-              {/* Four Class Tiers */}
               <div className="grid-2">
                 <div style={{ padding: '14px', backgroundColor: '#f0fdf4', border: '1px solid #86efac', borderRadius: '8px' }}>
                   <div style={{ fontWeight: '800', color: '#166534', fontSize: '0.9rem' }}>Score 85 - 100: Highly Suitable</div>
@@ -394,7 +384,6 @@ export default function AboutProject() {
         </div>
       )}
 
-      {/* TAB 4: Physical Hardware & Serial Pipeline */}
       {activeTab === 'hardware' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div className="card">
@@ -451,7 +440,6 @@ export default function AboutProject() {
         </div>
       )}
 
-      {/* TAB 5: Authoritative References & Standards */}
       {activeTab === 'references' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div className="card">
