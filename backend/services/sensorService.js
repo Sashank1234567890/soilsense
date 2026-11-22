@@ -46,6 +46,8 @@ async function checkSensorAlerts(reading) {
       if (!existing) {
         await Alert.create({
           alertId: `ALT_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+          user: p.owner || null,
+          userId: p.owner || null,
           deviceId,
           plotId: targetPlotId,
           type: 'CRITICAL_MOISTURE_LOW',
@@ -66,6 +68,8 @@ async function checkSensorAlerts(reading) {
       if (!existing) {
         await Alert.create({
           alertId: `ALT_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+          user: p.owner || null,
+          userId: p.owner || null,
           deviceId,
           plotId: targetPlotId,
           type: 'CRITICAL_MOISTURE_HIGH',

@@ -10,7 +10,7 @@ async function searchCrops(req, res) {
 
     if (!q) {
       const filter = category ? { category } : {};
-      const crops = await Crop.find(filter).limit(20).sort({ name: 1 });
+      const crops = await Crop.find(filter).sort({ name: 1 });
       return res.json({ success: true, count: crops.length, data: crops });
     }
 

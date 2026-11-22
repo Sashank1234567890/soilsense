@@ -26,7 +26,8 @@ import {
   AlertTriangle,
   ArrowRight,
   TrendingUp,
-  Clock
+  Clock,
+  Trash2
 } from 'lucide-react';
 import {
   getCrops,
@@ -34,6 +35,7 @@ import {
   getSoilTests,
   getDevices,
   getAlerts,
+  deleteAlert,
   getDeviceReadings,
   getIoTStatus
 } from '../services/api';
@@ -100,6 +102,19 @@ export default function Dashboard() {
     } catch (err) {
       console.error('Failed to load dashboard data:', err);
       setLoading(false);
+    }
+  };
+
+  const handleDeleteAlert = async (id) => {
+    try {
+      await deleteAlert(id);
+      setRecentAlerts(prev => prev.filter(a => a._id !== id));
+      setStats(prev => ({
+        ...prev,
+        alertsCount: Math.max(0, prev.alertsCount - 1)
+      }));
+    } catch (err) {
+      console.error('Failed to delete alert:', err);
     }
   };
 
@@ -323,6 +338,7 @@ export default function Dashboard() {
                   style={{
                     display: 'flex',
                     alignItems: 'flex-start',
+                    justifyContent: 'space-between',
                     gap: '12px',
                     padding: '12px 14px',
                     backgroundColor: alt.severity === 'high' ? '#fef2f2' : '#fffbeb',
@@ -330,22 +346,44 @@ export default function Dashboard() {
                     borderRadius: '8px'
                   }}
                 >
-                  <AlertTriangle
-                    size={20}
-                    color={alt.severity === 'high' ? '#dc2626' : '#d97706'}
-                    style={{ flexShrink: 0, marginTop: '2px' }}
-                  />
-                  <div>
-                    <div style={{ fontWeight: '600', fontSize: '0.88rem', color: '#1f2937' }}>
-                      {alt.type.replace(/_/g, ' ')}
-                    </div>
-                    <div style={{ fontSize: '0.82rem', color: '#4b5563', marginTop: '2px' }}>
-                      {alt.message}
-                    </div>
-                    <div style={{ fontSize: '0.72rem', color: '#6b7280', marginTop: '4px' }}>
-                      Device: {alt.deviceId} • Key: {alt.deduplicationKey}
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', flex: 1 }}>
+                    <AlertTriangle
+                      size={20}
+                      color={alt.severity === 'high' ? '#dc2626' : '#d97706'}
+                      style={{ flexShrink: 0, marginTop: '2px' }}
+                    />
+                    <div>
+                      <div style={{ fontWeight: '600', fontSize: '0.88rem', color: '#1f2937' }}>
+                        {alt.type.replace(/_/g, ' ')}
+                      </div>
+                      <div style={{ fontSize: '0.82rem', color: '#4b5563', marginTop: '2px' }}>
+                        {alt.message}
+                      </div>
+                      <div style={{ fontSize: '0.72rem', color: '#6b7280', marginTop: '4px' }}>
+                        Plot: {alt.plotId || 'N/A'} • Device: {alt.deviceId} • Key: {alt.deduplicationKey}
+                      </div>
                     </div>
                   </div>
+                  <button
+                    onClick={() => handleDeleteAlert(alt._id)}
+                    title="Delete alert"
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#ef4444',
+                      cursor: 'pointer',
+                      padding: '4px',
+                      borderRadius: '4px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fee2e2'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               ))
             ) : (

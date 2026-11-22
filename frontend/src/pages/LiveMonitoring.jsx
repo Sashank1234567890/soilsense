@@ -18,9 +18,10 @@ import {
   Settings,
   Battery,
   Wifi,
-  Zap
+  Zap,
+  Trash2
 } from 'lucide-react';
-import { getDevices, getDeviceReadings, getAlerts, ingestSensorReading, getIoTStatus } from '../services/api';
+import { getDevices, getDeviceReadings, getAlerts, deleteAlert, ingestSensorReading, getIoTStatus } from '../services/api';
 
 export default function LiveMonitoring() {
   const [devices, setDevices] = useState([]);
@@ -80,6 +81,15 @@ export default function LiveMonitoring() {
       setAlerts(alertsRes.data.data || []);
     } catch (err) {
       console.error('Failed to refresh live telemetry:', err);
+    }
+  };
+
+  const handleDeleteAlert = async (id) => {
+    try {
+      await deleteAlert(id);
+      setAlerts(prev => prev.filter(a => a._id !== id));
+    } catch (err) {
+      console.error('Failed to delete alert:', err);
     }
   };
 
@@ -288,9 +298,30 @@ export default function LiveMonitoring() {
                         <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{a.message}</div>
                       </div>
                     </div>
-                    <div style={{ textAlign: 'right', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                      <div>{new Date(a.timestamp).toLocaleTimeString()}</div>
-                      <div style={{ fontFamily: 'JetBrains Mono' }}>{a.deduplicationKey}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                      <div style={{ textAlign: 'right', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                        <div>{new Date(a.timestamp).toLocaleTimeString()}</div>
+                        <div style={{ fontFamily: 'JetBrains Mono' }}>{a.deduplicationKey}</div>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteAlert(a._id)}
+                        title="Delete alert"
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: '#ef4444',
+                          cursor: 'pointer',
+                          padding: '6px',
+                          borderRadius: '4px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fee2e2'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                      >
+                        <Trash2 size={16} />
+                      </button>
                     </div>
                   </div>
                 ))

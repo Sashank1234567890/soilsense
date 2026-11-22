@@ -9,16 +9,18 @@ const api = axios.create({
   }
 });
 
-// Attach Authorization Bearer token automatically if stored
-api.interceptors.request.use((config) => {
+// Attach Authorization Bearer token automatically if stored on both api instance and global axios
+const attachToken = (config) => {
   const token = localStorage.getItem('soilsense_token');
   if (token && token !== 'undefined' && token !== 'null') {
+    config.headers = config.headers || {};
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
-}, (error) => {
-  return Promise.reject(error);
-});
+};
+
+api.interceptors.request.use(attachToken, (error) => Promise.reject(error));
+axios.interceptors.request.use(attachToken, (error) => Promise.reject(error));
 
 // Response interceptor to gracefully clear dead tokens
 api.interceptors.response.use(
@@ -76,6 +78,8 @@ export const getDeviceReadings = (id, limit = 30) => api.get(`/devices/${id}/rea
 export const getLatestReading = (deviceId) => api.get(`/sensor/latest/${deviceId}`);
 export const ingestSensorReading = (data) => api.post('/sensor/readings', data);
 export const getAlerts = () => api.get('/alerts');
+export const deleteAlert = (id) => api.delete(`/alerts/${id}`);
+export const createAlert = (data) => api.post('/alerts', data);
 export const getIoTStatus = () => api.get('/iot/status');
 
 // Reports

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import SeasonSuitabilityAdvisory from '../components/SeasonSuitabilityAdvisory';
@@ -30,6 +31,7 @@ import {
 
 export default function FarmManagement() {
   const { lang, t, speak } = useLanguage();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const [farms, setFarms] = useState([]);
@@ -88,7 +90,7 @@ export default function FarmManagement() {
       fetchFarms(true);
     }, 3000);
     return () => clearInterval(interval);
-  }, []);
+  }, [user?._id, user?.email]);
 
   // Handle Add New Farm
   const handleAddFarmSubmit = async (e) => {

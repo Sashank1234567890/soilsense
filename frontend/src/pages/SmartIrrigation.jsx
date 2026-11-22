@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import {
   Droplets,
@@ -30,10 +31,15 @@ const CROP_NAME_MAP = {
 
 export default function SmartIrrigation() {
   const { lang, t, speak } = useLanguage();
+  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const activePlotId = searchParams.get('plotId') || 'PLOT_001';
-
   const [allFarms, setAllFarms] = useState([]);
+
+  const plotParam = searchParams.get('plotId');
+  const activePlotId = allFarms.some(f => f.plotId === plotParam)
+    ? plotParam
+    : (allFarms[0]?.plotId || 'PLOT_001');
+
   const [loading, setLoading] = useState(true);
   const [advisory, setAdvisory] = useState(null);
   const [weather, setWeather] = useState(null);
@@ -48,14 +54,19 @@ export default function SmartIrrigation() {
       try {
         const res = await axios.get('/api/advisory/farms');
         if (res.data?.success && res.data?.data) {
-          setAllFarms(res.data.data);
+          const farms = res.data.data;
+          setAllFarms(farms);
+          const currentParam = searchParams.get('plotId');
+          if (farms.length > 0 && !farms.some(f => f.plotId === currentParam)) {
+            setSearchParams({ plotId: farms[0].plotId });
+          }
         }
       } catch (e) {
         console.error('Fetch farms error:', e);
       }
     };
     fetchFarms();
-  }, []);
+  }, [user?._id, user?.email]);
 
   const activeFarm = allFarms.find(f => f.plotId === activePlotId) || allFarms[0] || {
     plotId: activePlotId,

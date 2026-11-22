@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import SeasonSuitabilityAdvisory from '../components/SeasonSuitabilityAdvisory';
 import {
@@ -35,7 +36,8 @@ import {
   Cpu,
   Wifi,
   WifiOff,
-  Thermometer
+  Thermometer,
+  Trash2
 } from 'lucide-react';
 
 const CROP_NAME_MAP = {
@@ -104,10 +106,15 @@ const COMMON_DISTRICTS = [
 
 export default function CropScheduleAlerts() {
   const { lang, t, speak } = useLanguage();
+  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const activePlotId = searchParams.get('plotId') || 'PLOT_001';
-
   const [allFarms, setAllFarms] = useState([]);
+
+  const plotParam = searchParams.get('plotId');
+  const activePlotId = allFarms.some(f => f.plotId === plotParam)
+    ? plotParam
+    : (allFarms.length > 0 ? allFarms[0]?.plotId : null);
+
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -117,6 +124,11 @@ export default function CropScheduleAlerts() {
   const [hardwareDetected, setHardwareDetected] = useState(false);
   const [locLoading, setLocLoading] = useState(false);
   const [locSuccess, setLocSuccess] = useState('');
+
+  // MongoDB User-Scoped Alerts State
+  const [userDbAlerts, setUserDbAlerts] = useState([]);
+  const [loadingDbAlerts, setLoadingDbAlerts] = useState(false);
+  const [alertActionMsg, setAlertActionMsg] = useState('');
 
   const [cropName, setCropName] = useState('Wheat');
   const [variety, setVariety] = useState('PBW 725');
@@ -167,16 +179,72 @@ export default function CropScheduleAlerts() {
     try {
       const res = await axios.get('/api/advisory/farms');
       if (res.data?.success && res.data?.data) {
-        setAllFarms(res.data.data);
+        const farms = res.data.data;
+        setAllFarms(farms);
+        const currentParam = searchParams.get('plotId');
+        if (farms.length > 0 && (!currentParam || !farms.some(f => f.plotId === currentParam))) {
+          setSearchParams({ plotId: farms[0].plotId });
+        }
       }
     } catch (e) {
       console.error('Fetch farms list error:', e);
     }
   };
 
+  const fetchUserDbAlerts = async () => {
+    try {
+      setLoadingDbAlerts(true);
+      const res = await axios.get('/api/alerts');
+      if (res.data?.success) {
+        setUserDbAlerts(res.data.data || []);
+      }
+    } catch (e) {
+      console.error('Fetch user alerts error:', e);
+    } finally {
+      setLoadingDbAlerts(false);
+    }
+  };
+
+  const handleDeleteDbAlert = async (alertId) => {
+    try {
+      await axios.delete(`/api/alerts/${alertId}`);
+      setUserDbAlerts(prev => prev.filter(a => a._id !== alertId));
+      setAlertActionMsg(lang === 'hi' ? 'अलर्ट सफलतापूर्वक हटा दिया गया।' : 'Alert removed from your account.');
+      setTimeout(() => setAlertActionMsg(''), 4000);
+    } catch (e) {
+      alert(lang === 'hi' ? 'अलर्ट हटाने में त्रुटि।' : 'Failed to delete alert.');
+    }
+  };
+
+  const handleCreateTestAlert = async () => {
+    try {
+      const res = await axios.post('/api/alerts', {
+        plotId: activePlotId || (allFarms[0]?.plotId) || 'PLOT_001',
+        type: 'CRITICAL_MOISTURE_LOW',
+        severity: 'high',
+        message: lang === 'hi'
+          ? `${cropName} (${activePlotId || 'खेत'}) के लिए मिट्टी की नमी अति-गंभीर (22%) — उपयोगकर्ता-विशिष्ट सुरक्षित अलर्ट`
+          : `Critical Low Soil Moisture Alert (22%) for ${cropName} (${activePlotId || 'Farm'}) — Stored in MongoDB for your user ID`,
+        value: currentMoisture,
+        threshold: notifConfig.criticalThreshold || 24
+      });
+      if (res.data?.success) {
+        await fetchUserDbAlerts();
+        setAlertActionMsg(lang === 'hi' ? 'नया अलर्ट आपके खाते में सफलतापूर्वक जोड़ा गया।' : 'Test alert created and linked to your User ID.');
+        setTimeout(() => setAlertActionMsg(''), 4000);
+      }
+    } catch (e) {
+      alert(lang === 'hi' ? 'अलर्ट बनाने में त्रुटि।' : 'Failed to create alert.');
+    }
+  };
+
   useEffect(() => {
+    setAllFarms([]);
+    setData(null);
+    setUserDbAlerts([]);
     fetchAllFarms();
-  }, []);
+    fetchUserDbAlerts();
+  }, [user?._id, user?.email]);
 
   useEffect(() => {
     let active = true;
@@ -193,7 +261,6 @@ export default function CropScheduleAlerts() {
             if (isLiveMode && mVal !== undefined && mVal !== null) {
               setCurrentMoisture(Math.round(mVal));
             }
-            fetchAllFarms();
             if (res.data.data.temperature !== null && res.data.data.temperature !== undefined && !isNaN(res.data.data.temperature)) {
               setCurrentTemperature(res.data.data.temperature);
               setTempSource('HARDWARE');
@@ -217,6 +284,10 @@ export default function CropScheduleAlerts() {
   }, [isLiveMode, assignedDeviceId]);
 
   const fetchScheduleAndAlerts = async () => {
+    if (!activePlotId) {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       const res = await axios.get(`/api/advisory/crop-schedule?plotId=${activePlotId}&currentMoisture=${currentMoisture}`);
@@ -1494,6 +1565,171 @@ export default function CropScheduleAlerts() {
           </div>
         </div>
       )}
+
+      {/* User-Specific Isolated MongoDB Alerts & Triggers */}
+      <div style={{
+        backgroundColor: '#ffffff',
+        borderRadius: '14px',
+        border: '1.5px solid #e2e8f0',
+        padding: '24px',
+        marginBottom: '24px',
+        boxShadow: '0 4px 14px rgba(0, 0, 0, 0.04)'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+          <div>
+            <div style={{ fontSize: '11px', fontWeight: '800', color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              {lang === 'hi' ? 'उपयोगकर्ता-विशिष्ट अलर्ट व सूचनाएं (MongoDB स्टोरेज)' : 'USER-ISOLATED ALERTS & NOTIFICATIONS (MONGODB SCOPED)'}
+            </div>
+            <h2 style={{ fontSize: '18px', fontWeight: '800', color: '#1e293b', margin: '4px 0 0 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Bell size={20} color="#16a34a" />
+              <span>{lang === 'hi' ? `मेरे अलर्ट (${user?.name || user?.email || 'मेरा खाता'})` : `My Alerts (${user?.name || user?.email || 'My Account'})`}</span>
+              <span style={{ fontSize: '12px', padding: '2px 8px', borderRadius: '12px', backgroundColor: '#dcfce7', color: '#15803d', fontWeight: '700' }}>
+                {userDbAlerts.length} {lang === 'hi' ? 'सक्रिय' : 'Active'}
+              </span>
+            </h2>
+            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+              {lang === 'hi'
+                ? 'प्रत्येक उपयोगकर्ता के अलर्ट MongoDB में उनके User ID से सुरक्षित रूप से जुड़े होते हैं। कोई डमी या साझा अलर्ट नहीं।'
+                : 'Every user has completely isolated alert storage in MongoDB tied to their User ID. Zero dummy or shared data.'}
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <button
+              onClick={handleCreateTestAlert}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 14px',
+                borderRadius: '8px',
+                backgroundColor: '#16a34a',
+                color: '#ffffff',
+                border: 'none',
+                fontWeight: '700',
+                fontSize: '13px',
+                cursor: 'pointer'
+              }}
+            >
+              <Plus size={16} />
+              <span>{lang === 'hi' ? '+ नया अलर्ट जोड़ें' : '+ Add Test Alert'}</span>
+            </button>
+          </div>
+        </div>
+
+        {alertActionMsg && (
+          <div style={{
+            padding: '10px 14px',
+            backgroundColor: '#dcfce7',
+            border: '1px solid #86efac',
+            borderRadius: '8px',
+            color: '#15803d',
+            fontSize: '13px',
+            fontWeight: '600',
+            marginBottom: '14px'
+          }}>
+            ✓ {alertActionMsg}
+          </div>
+        )}
+
+        {loadingDbAlerts ? (
+          <div style={{ padding: '20px', textAlign: 'center', color: '#64748b', fontSize: '13px' }}>
+            {lang === 'hi' ? 'अलर्ट लोड हो रहे हैं...' : 'Loading user alerts from MongoDB...'}
+          </div>
+        ) : userDbAlerts.length > 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {userDbAlerts.map(alt => (
+              <div
+                key={alt._id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '14px 16px',
+                  backgroundColor: alt.severity === 'high' ? '#fef2f2' : '#fffbeb',
+                  border: `1.5px solid ${alt.severity === 'high' ? '#fecaca' : '#fde68a'}`,
+                  borderRadius: '10px',
+                  gap: '14px'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', flex: 1 }}>
+                  <AlertTriangle
+                    size={20}
+                    color={alt.severity === 'high' ? '#dc2626' : '#d97706'}
+                    style={{ flexShrink: 0, marginTop: '2px' }}
+                  />
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <span style={{ fontWeight: '700', fontSize: '14px', color: '#1f2937' }}>
+                        {alt.type.replace(/_/g, ' ')}
+                      </span>
+                      <span style={{
+                        fontSize: '11px',
+                        padding: '1px 8px',
+                        borderRadius: '10px',
+                        fontWeight: '700',
+                        backgroundColor: alt.severity === 'high' ? '#fee2e2' : '#fef3c7',
+                        color: alt.severity === 'high' ? '#b91c1c' : '#92400e',
+                        textTransform: 'uppercase'
+                      }}>
+                        {alt.severity}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '13px', color: '#374151', marginTop: '3px' }}>
+                      {alt.message}
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
+                      Plot: {alt.plotId || 'N/A'} • Device: {alt.deviceId || 'DEVICE_001'} • {new Date(alt.timestamp).toLocaleString()}
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => handleDeleteDbAlert(alt._id)}
+                  title={lang === 'hi' ? 'अलर्ट हटाएं' : 'Delete alert'}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '6px 12px',
+                    backgroundColor: '#fee2e2',
+                    border: '1px solid #fca5a5',
+                    borderRadius: '6px',
+                    color: '#dc2626',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    fontWeight: '700',
+                    flexShrink: 0
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fecaca'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#fee2e2'}
+                >
+                  <Trash2 size={15} />
+                  <span>{lang === 'hi' ? 'हटाएं' : 'Delete'}</span>
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{
+            padding: '24px',
+            textAlign: 'center',
+            backgroundColor: '#f8fafc',
+            border: '1px dashed #cbd5e1',
+            borderRadius: '10px',
+            color: '#64748b'
+          }}>
+            <div style={{ fontSize: '14px', fontWeight: '600', color: '#334155', marginBottom: '4px' }}>
+              {lang === 'hi' ? 'कोई सक्रिय अलर्ट नहीं है' : 'No Active Alerts'}
+            </div>
+            <div style={{ fontSize: '12px' }}>
+              {lang === 'hi'
+                ? 'आपके खाते के लिए कोई डमी अलर्ट नहीं है। जब सेंसर थ्रेशोल्ड ट्रिगर होगा या आप नया अलर्ट सेट करेंगे, वह यहाँ दिखाई देगा।'
+                : 'No dummy alerts are shown. Alerts triggered by your hardware or set by you will appear here.'}
+            </div>
+          </div>
+        )}
+      </div>
 
       <div style={{
         backgroundColor: '#ffffff',

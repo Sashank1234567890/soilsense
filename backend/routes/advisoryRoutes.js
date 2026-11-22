@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const advisoryCtrl = require('../controllers/advisoryController');
+const { protect } = require('../middleware/auth');
+
+// Allow optional auth to extract req.user if token is present
+router.use(protect);
 
 router.get('/irrigation', advisoryCtrl.getIrrigationAdvisory);
 router.get('/fertilizer', advisoryCtrl.getFertilizerPrescription);

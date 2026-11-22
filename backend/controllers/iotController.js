@@ -172,12 +172,89 @@ async function getIoTSystemStatus(req, res) {
 }
 
 /**
- * Get recent IoT alerts
+ * Get recent IoT alerts scoped strictly to the authenticated user
  */
 async function getAlerts(req, res) {
   try {
-    const alerts = await Alert.find({}).sort({ timestamp: -1 }).limit(20);
+    if (!req.user) {
+      // Unauthenticated guests see 0 alerts (no dummy data)
+      return res.json({ success: true, count: 0, data: [] });
+    }
+
+    const Plot = require('../models/Plot');
+    const userPlots = await Plot.find({ owner: req.user._id }).select('plotId').lean();
+    const userPlotIds = userPlots.map(p => p.plotId);
+
+    const filter = {
+      $or: [
+        { user: req.user._id },
+        { userId: req.user._id },
+        { plotId: { $in: userPlotIds } }
+      ]
+    };
+
+    const alerts = await Alert.find(filter).sort({ timestamp: -1 }).limit(30);
     return res.json({ success: true, count: alerts.length, data: alerts });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+/**
+ * Delete / Dismiss an alert for the authenticated user
+ */
+async function deleteAlert(req, res) {
+  try {
+    const { id } = req.params;
+    let filter = { _id: id };
+
+    if (req.user) {
+      const Plot = require('../models/Plot');
+      const userPlots = await Plot.find({ owner: req.user._id }).select('plotId').lean();
+      const userPlotIds = userPlots.map(p => p.plotId);
+      filter = {
+        _id: id,
+        $or: [
+          { user: req.user._id },
+          { userId: req.user._id },
+          { plotId: { $in: userPlotIds } }
+        ]
+      };
+    }
+
+    const deleted = await Alert.findOneAndDelete(filter);
+    if (!deleted) {
+      return res.status(404).json({ success: false, message: 'Alert not found or unauthorized' });
+    }
+
+    return res.json({ success: true, message: 'Alert deleted successfully', data: deleted });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+/**
+ * Manually create a user alert
+ */
+async function createAlert(req, res) {
+  try {
+    const { plotId, type, severity, message, value, threshold } = req.body;
+    const userId = req.user?._id || null;
+    const newAlert = await Alert.create({
+      alertId: `ALT_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+      user: userId,
+      userId: userId,
+      plotId: plotId || 'PLOT_001',
+      deviceId: req.body.deviceId || 'DEVICE_001',
+      type: type || 'CUSTOM_FARM_ALERT',
+      severity: severity || 'medium',
+      message: message || 'Custom farm advisory alert',
+      value,
+      threshold,
+      deduplicationKey: `USER_${userId || 'GUEST'}_${Date.now()}`,
+      timestamp: new Date()
+    });
+    return res.status(201).json({ success: true, data: newAlert });
   } catch (err) {
     return res.status(500).json({ success: false, error: err.message });
   }
@@ -191,5 +268,7 @@ module.exports = {
   createDevice,
   getDeviceById,
   getAlerts,
+  deleteAlert,
+  createAlert,
   getIoTSystemStatus
 };

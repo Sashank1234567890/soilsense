@@ -803,8 +803,12 @@ async function evaluateCropAlerts({ plotId = 'PLOT_001', currentMoisture = null,
     try {
       const existingAlert = await Alert.findOne({ deduplicationKey: dedupKey, resolved: false });
       if (!existingAlert) {
+        const plotDoc = await Plot.findOne({ plotId }).select('owner').lean();
+        const ownerId = plotDoc?.owner || null;
         await Alert.create({
           alertId: `ALT_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+          user: ownerId,
+          userId: ownerId,
           deviceId: assignedDeviceId,
           plotId,
           type: alertLevel,
@@ -894,19 +898,77 @@ async function markCropAsHarvested({ plotId = 'PLOT_001', actualYieldQuintals = 
   return { archived: schedule, active: newSchedule };
 }
 
-async function getAllFarmsSummary() {
-  let plots = await Plot.find({ status: { $ne: 'deleted' } }).sort({ plotId: 1 }).lean();
+async function getAllFarmsSummary(userId = null) {
+  let query = { status: { $ne: 'deleted' } };
+  if (userId) {
+    query.owner = userId;
+  }
+  let plots = await Plot.find(query).sort({ plotId: 1 }).lean();
 
-  if (!plots || plots.length === 0) {
-    const defaultPlot = await Plot.create({
-      plotId: 'PLOT_001',
-      name: 'Ludhiana Basin - Block A (Wheat)',
-      areaAcres: 2.5,
-      location: { state: 'Punjab', district: 'Ludhiana', locality: 'Samrala Block' },
-      currentCrop: 'Wheat',
-      status: 'active'
-    });
-    plots = [defaultPlot.toObject()];
+  // If a specific logged-in user has no plots yet, check user profile and auto-generate their plot
+  if (userId && (!plots || plots.length === 0)) {
+    const User = require('../models/User');
+    const u = await User.findById(userId);
+    if (u) {
+      const allPlots = await Plot.find({}).lean();
+      let maxNum = 1;
+      allPlots.forEach(p => {
+        const match = (p.plotId || '').match(/PLOT_?(\d+)/i);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (num > maxNum) maxNum = num;
+        }
+      });
+      const newPlotId = `PLOT_${String(maxNum + 1).padStart(3, '0')}`;
+      const userCrop = (u.role === 'agronomist' ? 'Mustard' : u.role === 'student' ? 'Maize' : 'Wheat');
+      const defaultPlot = await Plot.create({
+        plotId: newPlotId,
+        name: u.plotName || `${u.name}'s Farm (${userCrop})`,
+        owner: u._id,
+        areaAcres: 2.5,
+        assignedDeviceId: 'DEVICE_001',
+        location: {
+          state: u.state || 'Punjab',
+          district: u.district || 'Ludhiana',
+          locality: u.village || 'Farm Block A'
+        },
+        currentCrop: userCrop,
+        status: 'active'
+      });
+
+      const meta = CROP_METADATA[userCrop] || CROP_METADATA.Wheat;
+      const sow = new Date();
+      await CropSchedule.create({
+        plotId: newPlotId,
+        assignedDeviceId: 'DEVICE_001',
+        cropName: userCrop,
+        variety: `${userCrop} Certified Seed`,
+        sowingDate: sow,
+        totalDurationDays: meta.durationDays,
+        expectedHarvestDate: new Date(sow.getTime() + meta.durationDays * 86400000),
+        acreage: 2.5,
+        location: { district: u.district || 'Ludhiana', state: u.state || 'Punjab', lat: 30.9, lon: 75.8, autoDetected: false },
+        moistureThresholds: { optimal: 55, soonerNotice: 40, criticalWilting: 25 },
+        notifications: { enabled: true, criticalMoisture: true, soonerMoisture: true, rainDelay: true, voiceAlert: true, smsAlert: true, phoneNumber: u.phone || '+91 98765 43210' },
+        growthStages: meta.stages,
+        status: 'ACTIVE'
+      });
+
+      plots = [defaultPlot.toObject()];
+    }
+  }
+
+  // If logged-in user still has no plots, keep plots as empty array (do NOT leak other users' plots!)
+  if (userId && (!plots || plots.length === 0)) {
+    plots = [];
+  }
+
+  // If unauthenticated guest (no userId), only show default demo plot PLOT_001
+  if (!userId && (!plots || plots.length === 0)) {
+    plots = await Plot.find({ plotId: 'PLOT_001', status: { $ne: 'deleted' } }).lean();
+    if (!plots || plots.length === 0) {
+      plots = await Plot.find({ status: { $ne: 'deleted' } }).limit(1).lean();
+    }
   }
 
   const summaries = [];
@@ -950,7 +1012,7 @@ async function getAllFarmsSummary() {
   return summaries;
 }
 
-async function createNewFarm({ name, district = 'Ludhiana', state = 'Punjab', acreage = 2.5, cropName = 'Wheat', variety = 'PBW 725', sowingDate, soilType = 'Loamy', notifications, assignedDeviceId = 'DEVICE_001' }) {
+async function createNewFarm({ name, district = 'Ludhiana', state = 'Punjab', acreage = 2.5, cropName = 'Wheat', variety = 'PBW 725', sowingDate, soilType = 'Loamy', notifications, assignedDeviceId = 'DEVICE_001', owner = null }) {
   const allPlots = await Plot.find({}).lean();
   let maxNum = 1;
   allPlots.forEach(p => {
@@ -966,6 +1028,7 @@ async function createNewFarm({ name, district = 'Ludhiana', state = 'Punjab', ac
   const plot = await Plot.create({
     plotId: newPlotId,
     name: name || `Farm ${newPlotId} (${cropName})`,
+    owner: owner || null,
     areaAcres: +acreage || 2.5,
     assignedDeviceId: device,
     location: {

@@ -19,11 +19,20 @@ export default function CropToSoil() {
   const fetchCrops = async (query, category) => {
     setLoading(true);
     try {
-      const res = await searchCrops(query, category);
+      const res = (!query && !category)
+        ? await getCrops()
+        : await searchCrops(query, category);
       setCrops(res.data.data || []);
       setLoading(false);
     } catch (err) {
       console.error('Failed to search crops:', err);
+      // Fallback try getCrops
+      try {
+        const fallback = await getCrops();
+        setCrops(fallback.data.data || []);
+      } catch (e2) {
+        setCrops([]);
+      }
       setLoading(false);
     }
   };

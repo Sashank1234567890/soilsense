@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import axios from 'axios';
 import { loginUser, registerUser, getCurrentUser, switchDemoProfile, switchAccount } from '../services/api';
 
 const AuthContext = createContext();
@@ -56,6 +57,15 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem('soilsense_token') || '');
   const [sessions, setSessions] = useState(() => getStoredSessions());
   const [loading, setLoading] = useState(true);
+
+  // Sync axios Authorization header immediately when token changes
+  useEffect(() => {
+    if (token && token !== 'undefined' && token !== 'null') {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    } else {
+      delete axios.defaults.headers.common['Authorization'];
+    }
+  }, [token]);
 
   // Initialize Auth on app load
   useEffect(() => {
@@ -121,6 +131,7 @@ export function AuthProvider({ children }) {
         setUser(userData);
         setToken(userData.token);
         localStorage.setItem('soilsense_token', userData.token);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${userData.token}`;
         const updated = upsertSession(userData);
         setSessions(updated);
         setLoading(false);
@@ -141,6 +152,7 @@ export function AuthProvider({ children }) {
         setUser(u);
         setToken(u.token);
         localStorage.setItem('soilsense_token', u.token);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${u.token}`;
         const updated = upsertSession(u);
         setSessions(updated);
         setLoading(false);
@@ -161,6 +173,7 @@ export function AuthProvider({ children }) {
         setUser(u);
         setToken(u.token);
         localStorage.setItem('soilsense_token', u.token);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${u.token}`;
         const updated = upsertSession(u);
         setSessions(updated);
         setLoading(false);
@@ -184,6 +197,7 @@ export function AuthProvider({ children }) {
         setUser(existing);
         setToken(existing.token);
         localStorage.setItem('soilsense_token', existing.token);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${existing.token}`;
         setLoading(false);
         return { success: true, data: existing };
       }
@@ -196,6 +210,7 @@ export function AuthProvider({ children }) {
         setUser(u);
         setToken(u.token);
         localStorage.setItem('soilsense_token', u.token);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${u.token}`;
         const updated = upsertSession(u);
         setSessions(updated);
         setLoading(false);
@@ -226,14 +241,17 @@ export function AuthProvider({ children }) {
         setToken(nextAccount.token || '');
         if (nextAccount.token) {
           localStorage.setItem('soilsense_token', nextAccount.token);
+          axios.defaults.headers.common['Authorization'] = `Bearer ${nextAccount.token}`;
         } else {
           localStorage.removeItem('soilsense_token');
+          delete axios.defaults.headers.common['Authorization'];
         }
         return { remaining: true, user: nextAccount };
       } else {
         setUser(null);
         setToken('');
         localStorage.removeItem('soilsense_token');
+        delete axios.defaults.headers.common['Authorization'];
         return { remaining: false, user: null };
       }
     }

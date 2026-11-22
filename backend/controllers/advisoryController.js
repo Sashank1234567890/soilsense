@@ -97,10 +97,21 @@ exports.checkSeasonSuitability = async (req, res) => {
 
 exports.getCropScheduleAndAlerts = async (req, res) => {
   try {
-    const { plotId = 'PLOT_001', currentMoisture = 34 } = req.query;
+    let targetPlotId = req.query.plotId;
+    if (!targetPlotId && req.user) {
+      const Plot = require('../models/Plot');
+      const userPlot = await Plot.findOne({ owner: req.user._id, status: { $ne: 'deleted' } }).sort({ plotId: 1 });
+      if (userPlot) {
+        targetPlotId = userPlot.plotId;
+      }
+    }
+    if (!targetPlotId) {
+      targetPlotId = 'PLOT_001';
+    }
+    const currentMoisture = req.query.currentMoisture !== undefined ? +req.query.currentMoisture : 34;
     const result = await evaluateCropAlerts({
-      plotId,
-      currentMoisture: +currentMoisture
+      plotId: targetPlotId,
+      currentMoisture
     });
     res.json({ success: true, data: result });
   } catch (err) {
@@ -110,7 +121,8 @@ exports.getCropScheduleAndAlerts = async (req, res) => {
 
 exports.getAllFarms = async (req, res) => {
   try {
-    const farms = await getAllFarmsSummary();
+    const userId = req.user?._id;
+    const farms = await getAllFarmsSummary(userId);
     res.json({ success: true, data: farms });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -130,7 +142,8 @@ exports.addFarm = async (req, res) => {
       sowingDate,
       soilType,
       notifications,
-      assignedDeviceId
+      assignedDeviceId,
+      owner: req.user?._id
     });
     res.status(201).json({ success: true, data: result, message: 'New farm created and initialized successfully' });
   } catch (err) {

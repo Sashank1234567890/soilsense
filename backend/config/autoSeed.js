@@ -75,15 +75,17 @@ async function autoSeedDatabase() {
     ];
 
     let farmerUser = null;
+    let agronomistUser = null;
+    let studentUser = null;
     for (const d of demoConfigs) {
       let u = await User.findOne({ email: d.email });
       if (!u) {
         u = await User.create(d);
         console.log(`[AutoSeed] Created demo user: ${d.email}`);
       }
-      if (d.role === 'farmer') {
-        farmerUser = u;
-      }
+      if (d.role === 'farmer') farmerUser = u;
+      if (d.role === 'agronomist') agronomistUser = u;
+      if (d.role === 'student') studentUser = u;
     }
 
     // 4. Ensure Device 001 exists
@@ -108,25 +110,143 @@ async function autoSeedDatabase() {
       console.log('[AutoSeed] Created default DEVICE_001');
     }
 
-    // 5. Ensure Plot 001 exists
-    const existingPlot = await Plot.findOne({ plotId: 'PLOT_001' });
-    if (!existingPlot && farmerUser) {
-      await Plot.create({
-        plotId: 'PLOT_001',
-        name: 'Ludhiana Basin - Block A (Wheat)',
-        owner: farmerUser._id,
-        areaAcres: 4.2,
-        assignedDeviceId: 'DEVICE_001',
-        location: {
-          state: 'Punjab',
-          district: 'Ludhiana',
-          locality: 'Samrala Block',
-          coordinates: { latitude: 30.9010, longitude: 75.8573 }
-        },
-        currentCrop: 'Wheat',
-        status: 'active'
-      });
-      console.log('[AutoSeed] Created default PLOT_001');
+    // 5. Ensure Distinct Dedicated Plots for Each Demo Role
+    const CropSchedule = require('../models/CropSchedule');
+    const { CROP_METADATA, checkCropSeasonSuitability } = require('../services/cropScheduleService');
+
+    // 5a. Farmer Plot (PLOT_001 - Wheat)
+    if (farmerUser) {
+      let plot001 = await Plot.findOne({ plotId: 'PLOT_001' });
+      if (!plot001) {
+        plot001 = await Plot.create({
+          plotId: 'PLOT_001',
+          name: 'Ludhiana Basin - Block A (Wheat)',
+          owner: farmerUser._id,
+          areaAcres: 4.2,
+          assignedDeviceId: 'DEVICE_001',
+          location: {
+            state: 'Punjab',
+            district: 'Ludhiana',
+            locality: 'Samrala Block',
+            coordinates: { latitude: 30.9010, longitude: 75.8573 }
+          },
+          currentCrop: 'Wheat',
+          status: 'active'
+        });
+        console.log('[AutoSeed] Created PLOT_001 for Farmer (Wheat)');
+      } else if (!plot001.owner) {
+        plot001.owner = farmerUser._id;
+        await plot001.save();
+      }
+
+      const sched001 = await CropSchedule.findOne({ plotId: 'PLOT_001' });
+      if (!sched001) {
+        const meta = CROP_METADATA.Wheat;
+        const sow = new Date('2026-10-28');
+        await CropSchedule.create({
+          plotId: 'PLOT_001',
+          assignedDeviceId: 'DEVICE_001',
+          cropName: 'Wheat',
+          variety: 'PBW 725 (High Yielding)',
+          sowingDate: sow,
+          totalDurationDays: meta.durationDays,
+          expectedHarvestDate: new Date(sow.getTime() + meta.durationDays * 86400000),
+          acreage: 4.2,
+          location: { district: 'Ludhiana', state: 'Punjab', lat: 30.9010, lon: 75.8573, autoDetected: false },
+          moistureThresholds: { optimal: 55, soonerNotice: 40, criticalWilting: 25 },
+          notifications: { enabled: true, criticalMoisture: true, soonerMoisture: true, rainDelay: true, voiceAlert: true, smsAlert: true, phoneNumber: '+91 98765 43210' },
+          growthStages: meta.stages,
+          status: 'ACTIVE'
+        });
+      }
+    }
+
+    // 5b. Agronomist Plot (PLOT_AGRO_001 - Mustard)
+    if (agronomistUser) {
+      let plotAgro = await Plot.findOne({ plotId: 'PLOT_AGRO_001' });
+      if (!plotAgro) {
+        plotAgro = await Plot.create({
+          plotId: 'PLOT_AGRO_001',
+          name: 'PAU Agronomy Research Field 4 (Mustard)',
+          owner: agronomistUser._id,
+          areaAcres: 2.5,
+          assignedDeviceId: 'DEVICE_001',
+          location: {
+            state: 'Punjab',
+            district: 'Ludhiana',
+            locality: 'PAU Campus',
+            coordinates: { latitude: 30.9010, longitude: 75.8573 }
+          },
+          currentCrop: 'Mustard',
+          status: 'active'
+        });
+        console.log('[AutoSeed] Created PLOT_AGRO_001 for Agronomist (Mustard)');
+      }
+
+      const schedAgro = await CropSchedule.findOne({ plotId: 'PLOT_AGRO_001' });
+      if (!schedAgro) {
+        const meta = CROP_METADATA.Mustard || CROP_METADATA.Wheat;
+        const sow = new Date('2026-10-15');
+        await CropSchedule.create({
+          plotId: 'PLOT_AGRO_001',
+          assignedDeviceId: 'DEVICE_001',
+          cropName: 'Mustard',
+          variety: 'Giriraj (RGN-73 High Oil)',
+          sowingDate: sow,
+          totalDurationDays: meta.durationDays || 125,
+          expectedHarvestDate: new Date(sow.getTime() + (meta.durationDays || 125) * 86400000),
+          acreage: 2.5,
+          location: { district: 'Ludhiana', state: 'Punjab', lat: 30.9010, lon: 75.8573, autoDetected: false },
+          moistureThresholds: { optimal: 50, soonerNotice: 35, criticalWilting: 20 },
+          notifications: { enabled: true, criticalMoisture: true, soonerMoisture: true, rainDelay: true, voiceAlert: true, smsAlert: true, phoneNumber: '+91 98111 22334' },
+          growthStages: meta.stages,
+          status: 'ACTIVE'
+        });
+      }
+    }
+
+    // 5c. Student Plot (PLOT_STU_001 - Maize)
+    if (studentUser) {
+      let plotStu = await Plot.findOne({ plotId: 'PLOT_STU_001' });
+      if (!plotStu) {
+        plotStu = await Plot.create({
+          plotId: 'PLOT_STU_001',
+          name: 'NIT Delhi IoT Smart Agri Farm (Maize)',
+          owner: studentUser._id,
+          areaAcres: 1.5,
+          assignedDeviceId: 'DEVICE_001',
+          location: {
+            state: 'Delhi',
+            district: 'North Delhi',
+            locality: 'NIT Delhi Campus',
+            coordinates: { latitude: 28.77, longitude: 77.19 }
+          },
+          currentCrop: 'Maize',
+          status: 'active'
+        });
+        console.log('[AutoSeed] Created PLOT_STU_001 for Student (Maize)');
+      }
+
+      const schedStu = await CropSchedule.findOne({ plotId: 'PLOT_STU_001' });
+      if (!schedStu) {
+        const meta = CROP_METADATA.Maize || CROP_METADATA.Wheat;
+        const sow = new Date('2026-10-20');
+        await CropSchedule.create({
+          plotId: 'PLOT_STU_001',
+          assignedDeviceId: 'DEVICE_001',
+          cropName: 'Maize',
+          variety: 'HQPM-1 (Quality Protein Maize)',
+          sowingDate: sow,
+          totalDurationDays: meta.durationDays || 110,
+          expectedHarvestDate: new Date(sow.getTime() + (meta.durationDays || 110) * 86400000),
+          acreage: 1.5,
+          location: { district: 'North Delhi', state: 'Delhi', lat: 28.77, lon: 77.19, autoDetected: false },
+          moistureThresholds: { optimal: 60, soonerNotice: 45, criticalWilting: 28 },
+          notifications: { enabled: true, criticalMoisture: true, soonerMoisture: true, rainDelay: true, voiceAlert: true, smsAlert: true, phoneNumber: '+91 99999 88888' },
+          growthStages: meta.stages,
+          status: 'ACTIVE'
+        });
+      }
     }
 
     // 6. Ensure baseline demo test exists for demo farmer
