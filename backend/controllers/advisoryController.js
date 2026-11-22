@@ -98,22 +98,41 @@ exports.checkSeasonSuitability = async (req, res) => {
 exports.getCropScheduleAndAlerts = async (req, res) => {
   try {
     let targetPlotId = req.query.plotId;
-    if (!targetPlotId && req.user) {
-      const Plot = require('../models/Plot');
-      const userPlot = await Plot.findOne({ owner: req.user._id, status: { $ne: 'deleted' } }).sort({ plotId: 1 });
-      if (userPlot) {
-        targetPlotId = userPlot.plotId;
+    const Plot = require('../models/Plot');
+
+    if (req.user) {
+      if (targetPlotId) {
+        const owned = await Plot.findOne({ plotId: targetPlotId, owner: req.user._id, status: { $ne: 'deleted' } });
+        if (!owned) {
+          // If the requested plot does not belong to this user, try finding their first plot
+          const firstPlot = await Plot.findOne({ owner: req.user._id, status: { $ne: 'deleted' } }).sort({ plotId: 1 });
+          if (!firstPlot) {
+            return res.json({ success: true, hasFarm: false, data: null });
+          }
+          targetPlotId = firstPlot.plotId;
+        }
+      } else {
+        const firstPlot = await Plot.findOne({ owner: req.user._id, status: { $ne: 'deleted' } }).sort({ plotId: 1 });
+        if (!firstPlot) {
+          return res.json({ success: true, hasFarm: false, data: null });
+        }
+        targetPlotId = firstPlot.plotId;
       }
     }
+
     if (!targetPlotId) {
+      if (req.user) {
+        return res.json({ success: true, hasFarm: false, data: null });
+      }
       targetPlotId = 'PLOT_001';
     }
+
     const currentMoisture = req.query.currentMoisture !== undefined ? +req.query.currentMoisture : 34;
     const result = await evaluateCropAlerts({
       plotId: targetPlotId,
       currentMoisture
     });
-    res.json({ success: true, data: result });
+    res.json({ success: true, hasFarm: true, data: result });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

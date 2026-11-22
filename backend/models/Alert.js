@@ -11,6 +11,7 @@ const alertSchema = new mongoose.Schema({
     enum: [
       'CRITICAL_MOISTURE_LOW',
       'CRITICAL_MOISTURE_HIGH',
+      'SOONER_NOTICE',
       'SENSOR_DISCONNECT',
       'ANOMALOUS_READING',
       'CALIBRATION_DRIFT',

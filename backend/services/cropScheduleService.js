@@ -905,70 +905,17 @@ async function getAllFarmsSummary(userId = null) {
   }
   let plots = await Plot.find(query).sort({ plotId: 1 }).lean();
 
-  // If a specific logged-in user has no plots yet, check user profile and auto-generate their plot
-  if (userId && (!plots || plots.length === 0)) {
-    const User = require('../models/User');
-    const u = await User.findById(userId);
-    if (u) {
-      const allPlots = await Plot.find({}).lean();
-      let maxNum = 1;
-      allPlots.forEach(p => {
-        const match = (p.plotId || '').match(/PLOT_?(\d+)/i);
-        if (match) {
-          const num = parseInt(match[1], 10);
-          if (num > maxNum) maxNum = num;
-        }
-      });
-      const newPlotId = `PLOT_${String(maxNum + 1).padStart(3, '0')}`;
-      const userCrop = (u.role === 'agronomist' ? 'Mustard' : u.role === 'student' ? 'Maize' : 'Wheat');
-      const defaultPlot = await Plot.create({
-        plotId: newPlotId,
-        name: u.plotName || `${u.name}'s Farm (${userCrop})`,
-        owner: u._id,
-        areaAcres: 2.5,
-        assignedDeviceId: 'DEVICE_001',
-        location: {
-          state: u.state || 'Punjab',
-          district: u.district || 'Ludhiana',
-          locality: u.village || 'Farm Block A'
-        },
-        currentCrop: userCrop,
-        status: 'active'
-      });
-
-      const meta = CROP_METADATA[userCrop] || CROP_METADATA.Wheat;
-      const sow = new Date();
-      await CropSchedule.create({
-        plotId: newPlotId,
-        assignedDeviceId: 'DEVICE_001',
-        cropName: userCrop,
-        variety: `${userCrop} Certified Seed`,
-        sowingDate: sow,
-        totalDurationDays: meta.durationDays,
-        expectedHarvestDate: new Date(sow.getTime() + meta.durationDays * 86400000),
-        acreage: 2.5,
-        location: { district: u.district || 'Ludhiana', state: u.state || 'Punjab', lat: 30.9, lon: 75.8, autoDetected: false },
-        moistureThresholds: { optimal: 55, soonerNotice: 40, criticalWilting: 25 },
-        notifications: { enabled: true, criticalMoisture: true, soonerMoisture: true, rainDelay: true, voiceAlert: true, smsAlert: true, phoneNumber: u.phone || '+91 98765 43210' },
-        growthStages: meta.stages,
-        status: 'ACTIVE'
-      });
-
-      plots = [defaultPlot.toObject()];
-    }
-  }
-
-  // If logged-in user still has no plots, keep plots as empty array (do NOT leak other users' plots!)
-  if (userId && (!plots || plots.length === 0)) {
-    plots = [];
-  }
-
   // If unauthenticated guest (no userId), only show default demo plot PLOT_001
   if (!userId && (!plots || plots.length === 0)) {
     plots = await Plot.find({ plotId: 'PLOT_001', status: { $ne: 'deleted' } }).lean();
     if (!plots || plots.length === 0) {
       plots = await Plot.find({ status: { $ne: 'deleted' } }).limit(1).lean();
     }
+  }
+
+  // If a logged-in user has no plots yet, return empty array (user will add their own crop/farm!)
+  if (userId && (!plots || plots.length === 0)) {
+    return [];
   }
 
   const summaries = [];

@@ -130,10 +130,10 @@ export default function CropScheduleAlerts() {
   const [loadingDbAlerts, setLoadingDbAlerts] = useState(false);
   const [alertActionMsg, setAlertActionMsg] = useState('');
 
-  const [cropName, setCropName] = useState('Wheat');
-  const [variety, setVariety] = useState('PBW 725');
+  const [cropName, setCropName] = useState('');
+  const [variety, setVariety] = useState('');
   const [acreage, setAcreage] = useState(2.5);
-  const [sowingDate, setSowingDate] = useState('2026-10-27');
+  const [sowingDate, setSowingDate] = useState(new Date().toISOString().split('T')[0]);
   const [assignedDeviceId, setAssignedDeviceId] = useState('DEVICE_001');
   const [currentTemperature, setCurrentTemperature] = useState(null);
   const [tempSource, setTempSource] = useState('GPS');
@@ -178,16 +178,23 @@ export default function CropScheduleAlerts() {
   const fetchAllFarms = async () => {
     try {
       const res = await axios.get('/api/advisory/farms');
-      if (res.data?.success && res.data?.data) {
-        const farms = res.data.data;
+      if (res.data?.success) {
+        const farms = res.data.data || [];
         setAllFarms(farms);
         const currentParam = searchParams.get('plotId');
-        if (farms.length > 0 && (!currentParam || !farms.some(f => f.plotId === currentParam))) {
-          setSearchParams({ plotId: farms[0].plotId });
+        if (farms.length > 0) {
+          if (!currentParam || !farms.some(f => f.plotId === currentParam)) {
+            setSearchParams({ plotId: farms[0].plotId });
+          }
+        } else {
+          setSearchParams({});
+          setData(null);
         }
       }
     } catch (e) {
       console.error('Fetch farms list error:', e);
+      setAllFarms([]);
+      setData(null);
     }
   };
 
@@ -284,14 +291,15 @@ export default function CropScheduleAlerts() {
   }, [isLiveMode, assignedDeviceId]);
 
   const fetchScheduleAndAlerts = async () => {
-    if (!activePlotId) {
+    if (!activePlotId || allFarms.length === 0) {
       setLoading(false);
+      setData(null);
       return;
     }
     try {
       setLoading(true);
       const res = await axios.get(`/api/advisory/crop-schedule?plotId=${activePlotId}&currentMoisture=${currentMoisture}`);
-      if (res.data?.data) {
+      if (res.data?.success && res.data?.hasFarm && res.data?.data) {
         setData(res.data.data);
         const sched = res.data.data.schedule;
         if (res.data.data.assignedDeviceId) {
@@ -303,8 +311,8 @@ export default function CropScheduleAlerts() {
           setAvailableDevices(res.data.data.availableDevices);
         }
         if (sched) {
-          setCropName(sched.cropName || 'Wheat');
-          setVariety(sched.variety || 'PBW 725');
+          setCropName(sched.cropName || '');
+          setVariety(sched.variety || '');
           setAcreage(sched.acreage || 2.5);
           if (sched.sowingDate) {
             setSowingDate(sched.sowingDate.split('T')[0]);
@@ -313,9 +321,12 @@ export default function CropScheduleAlerts() {
             setNotifConfig(prev => ({ ...prev, ...sched.notifications }));
           }
         }
+      } else {
+        setData(null);
       }
     } catch (err) {
       console.error('Fetch schedule error:', err);
+      setData(null);
     } finally {
       setLoading(false);
     }
@@ -692,132 +703,187 @@ export default function CropScheduleAlerts() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: '14px' }}>
-          {allFarms.map((farm) => {
-            const isSelected = farm.plotId === activePlotId;
-            const cropHi = CROP_NAME_MAP[farm.currentCrop]?.hi || farm.currentCrop;
-            const cropEn = CROP_NAME_MAP[farm.currentCrop]?.en || farm.currentCrop;
-            const cropLabel = lang === 'hi' ? cropHi : cropEn;
-            const farmDist = farm.location?.district || 'Farm';
+        {allFarms.length === 0 ? (
+          <div style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '16px',
+            border: '2px dashed #cbd5e1',
+            padding: '50px 24px',
+            textAlign: 'center',
+            marginTop: '16px'
+          }}>
+            <div style={{
+              width: '60px',
+              height: '60px',
+              borderRadius: '50%',
+              backgroundColor: '#ecfdf5',
+              color: '#10b981',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px auto'
+            }}>
+              <Sprout size={32} />
+            </div>
+            <h3 style={{ fontSize: '20px', fontWeight: '800', color: '#0f172a', marginBottom: '8px' }}>
+              {lang === 'hi' ? 'कोई खेत या फसल पंजीकृत नहीं है' : 'No Farms or Crops Added Yet'}
+            </h3>
+            <p style={{ color: '#64748b', fontSize: '14px', maxWidth: '520px', margin: '0 auto 20px auto', lineHeight: '1.6' }}>
+              {lang === 'hi'
+                ? `नमस्ते ${user?.name || 'किसान साथी'}! आपके खाते में कोई डिफ़ॉल्ट फसल नहीं जोड़ी गई है। अपनी पसंद की फसल (जैसे गेहूं, धान, मक्का, सरसों, कपास) चुनने और उसकी सटीक सिंचाई ट्रैक करने के लिए नीचे दिए बटन से अपना खेत जोड़ें।`
+                : `Welcome ${user?.name || 'Farmer'}! No default crops have been added to your account. Add your first farm below to select your dedicated crop and track precision irrigation.`}
+            </p>
+            <button
+              onClick={() => setShowAddFarmModal(true)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '12px 24px',
+                borderRadius: '10px',
+                backgroundColor: '#16a34a',
+                color: '#ffffff',
+                border: 'none',
+                fontWeight: '800',
+                fontSize: '15px',
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(22, 163, 74, 0.25)'
+              }}
+            >
+              <Plus size={18} />
+              <span>{lang === 'hi' ? '+ अपना पहला खेत व फसल जोड़ें' : '+ Add Your First Farm & Crop'}</span>
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))', gap: '14px' }}>
+            {allFarms.map((farm) => {
+              const isSelected = farm.plotId === activePlotId;
+              const cropHi = CROP_NAME_MAP[farm.currentCrop]?.hi || farm.currentCrop;
+              const cropEn = CROP_NAME_MAP[farm.currentCrop]?.en || farm.currentCrop;
+              const cropLabel = lang === 'hi' ? cropHi : cropEn;
+              const farmDist = farm.location?.district || 'Farm';
 
-            return (
-              <div
-                key={farm.plotId}
-                onClick={() => setSearchParams({ plotId: farm.plotId })}
-                style={{
-                  backgroundColor: isSelected ? '#f0fdf4' : '#ffffff',
-                  border: isSelected ? '2.5px solid #16a34a' : '1.5px solid #e2e8f0',
-                  borderRadius: '14px',
-                  padding: '16px',
-                  cursor: 'pointer',
-                  boxShadow: isSelected ? '0 6px 16px rgba(22, 163, 74, 0.18)' : '0 1px 3px rgba(0,0,0,0.03)',
-                  transition: 'all 0.18s ease',
-                  position: 'relative'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '36px', height: '36px', borderRadius: '8px', backgroundColor: isSelected ? '#dcfce7' : '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Sprout size={20} color={isSelected ? '#166534' : '#475569'} /></div>
-                    <div>
-                      <div style={{ fontSize: '15px', fontWeight: '800', color: isSelected ? '#166534' : '#0f172a' }}>
-                        {cropLabel} ({farm.variety || 'Certified'})
+              return (
+                <div
+                  key={farm.plotId}
+                  onClick={() => setSearchParams({ plotId: farm.plotId })}
+                  style={{
+                    backgroundColor: isSelected ? '#f0fdf4' : '#ffffff',
+                    border: isSelected ? '2.5px solid #16a34a' : '1.5px solid #e2e8f0',
+                    borderRadius: '14px',
+                    padding: '16px',
+                    cursor: 'pointer',
+                    boxShadow: isSelected ? '0 6px 16px rgba(22, 163, 74, 0.18)' : '0 1px 3px rgba(0,0,0,0.03)',
+                    transition: 'all 0.18s ease',
+                    position: 'relative'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div style={{ width: '36px', height: '36px', borderRadius: '8px', backgroundColor: isSelected ? '#dcfce7' : '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Sprout size={20} color={isSelected ? '#166534' : '#475569'} /></div>
+                      <div>
+                        <div style={{ fontSize: '15px', fontWeight: '800', color: isSelected ? '#166534' : '#0f172a' }}>
+                          {cropLabel} ({farm.variety || 'Certified'})
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#64748b' }}>
+                          {farmDist} • {farm.areaAcres || farm.acreage || 2.5} {lang === 'hi' ? 'एकड़' : 'Acres'}
+                        </div>
                       </div>
-                      <div style={{ fontSize: '12px', color: '#64748b' }}>
-                        {farmDist} • {farm.areaAcres || farm.acreage || 2.5} {lang === 'hi' ? 'एकड़' : 'Acres'}
-                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                      <span style={{
+                        fontSize: '11px',
+                        color: isSelected ? '#166534' : '#64748b',
+                        backgroundColor: isSelected ? '#dcfce7' : '#f1f5f9',
+                        padding: '3px 8px',
+                        borderRadius: '6px',
+                        fontWeight: '800'
+                      }}>
+                        {farm.plotId}
+                      </span>
+                      <span style={{
+                        fontSize: '10px',
+                        fontWeight: '700',
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        backgroundColor: farm.hasLiveDevice ? '#f0fdf4' : '#f1f5f9',
+                        color: farm.hasLiveDevice ? '#15803d' : '#64748b',
+                        border: `1px solid ${farm.hasLiveDevice ? '#bbf7d0' : '#cbd5e1'}`
+                      }}>
+                        {farm.hasLiveDevice
+                          ? (farm.assignedDeviceId === 'DEVICE_001' ? 'डिवाइस 1' : farm.assignedDeviceId)
+                          : (lang === 'hi' ? 'केवल टाइमलाइन' : 'Timeline Only')}
+                      </span>
+                      {farm.seasonSuitability && (
+                        <span style={{
+                          fontSize: '10px',
+                          fontWeight: '800',
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                          backgroundColor: farm.seasonSuitability.isOptimal ? '#dcfce7' : '#fee2e2',
+                          color: farm.seasonSuitability.isOptimal ? '#166534' : '#991b1b',
+                          border: `1px solid ${farm.seasonSuitability.isOptimal ? '#86efac' : '#fca5a5'}`
+                        }}>
+                          {farm.seasonSuitability.isOptimal
+                            ? (lang === 'hi' ? 'इष्टतम सीज़न' : 'Ideal Season')
+                            : (lang === 'hi' ? 'असामयिक' : 'Off-Season')}
+                        </span>
+                      )}
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
-                    <span style={{
-                      fontSize: '11px',
-                      color: isSelected ? '#166534' : '#64748b',
-                      backgroundColor: isSelected ? '#dcfce7' : '#f1f5f9',
-                      padding: '3px 8px',
-                      borderRadius: '6px',
-                      fontWeight: '800'
-                    }}>
-                      {farm.plotId}
-                    </span>
-                    <span style={{
-                      fontSize: '10px',
-                      fontWeight: '700',
-                      padding: '2px 6px',
-                      borderRadius: '4px',
-                      backgroundColor: farm.hasLiveDevice ? '#f0fdf4' : '#f1f5f9',
-                      color: farm.hasLiveDevice ? '#15803d' : '#64748b',
-                      border: `1px solid ${farm.hasLiveDevice ? '#bbf7d0' : '#cbd5e1'}`
-                    }}>
-                      {farm.hasLiveDevice
-                        ? (farm.assignedDeviceId === 'DEVICE_001' ? 'डिवाइस 1' : farm.assignedDeviceId)
-                        : (lang === 'hi' ? 'केवल टाइमलाइन' : 'Timeline Only')}
-                    </span>
-                    {farm.seasonSuitability && (
-                      <span style={{
-                        fontSize: '10px',
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#475569', margin: '8px 0', borderTop: '1px solid #f1f5f9', paddingTop: '8px' }}>
+                    <span>{lang === 'hi' ? 'अवस्था:' : 'Stage:'} <strong>{farm.currentStage?.stageName?.split('(')[0] || 'Vegetative'}</strong></span>
+                    <span>Day {farm.das} / {farm.totalDurationDays || 135}</span>
+                  </div>
+
+                  <div style={{ marginTop: '10px' }}>
+                    {isSelected ? (
+                      <div style={{
+                        backgroundColor: '#16a34a',
+                        color: '#ffffff',
+                        fontSize: '12px',
                         fontWeight: '800',
-                        padding: '2px 6px',
-                        borderRadius: '4px',
-                        backgroundColor: farm.seasonSuitability.isOptimal ? '#dcfce7' : '#fee2e2',
-                        color: farm.seasonSuitability.isOptimal ? '#166534' : '#991b1b',
-                        border: `1px solid ${farm.seasonSuitability.isOptimal ? '#86efac' : '#fca5a5'}`
+                        padding: '7px 12px',
+                        borderRadius: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px'
                       }}>
-                        {farm.seasonSuitability.isOptimal
-                          ? (lang === 'hi' ? 'इष्टतम सीज़न' : 'Ideal Season')
-                          : (lang === 'hi' ? 'असामयिक' : 'Off-Season')}
-                      </span>
+                        <Check size={14} />
+                        <span>{lang === 'hi' ? 'सक्रिय फसल (चयनित)' : 'Active Dedicated Crop'}</span>
+                      </div>
+                    ) : (
+                      <div style={{
+                        backgroundColor: '#f8fafc',
+                        color: '#334155',
+                        border: '1px solid #cbd5e1',
+                        fontSize: '12px',
+                        fontWeight: '700',
+                        padding: '7px 12px',
+                        borderRadius: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px'
+                      }}>
+                        <span>{lang === 'hi' ? 'इस फसल का प्रबंधन करें' : 'Manage this Crop'}</span>
+                        <ArrowRight size={14} />
+                      </div>
                     )}
                   </div>
                 </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#475569', margin: '8px 0', borderTop: '1px solid #f1f5f9', paddingTop: '8px' }}>
-                  <span>{lang === 'hi' ? 'अवस्था:' : 'Stage:'} <strong>{farm.currentStage?.stageName?.split('(')[0] || 'Vegetative'}</strong></span>
-                  <span>Day {farm.das} / {farm.totalDurationDays || 135}</span>
-                </div>
-
-                <div style={{ marginTop: '10px' }}>
-                  {isSelected ? (
-                    <div style={{
-                      backgroundColor: '#16a34a',
-                      color: '#ffffff',
-                      fontSize: '12px',
-                      fontWeight: '800',
-                      padding: '7px 12px',
-                      borderRadius: '8px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '6px'
-                    }}>
-                      <Check size={14} />
-                      <span>{lang === 'hi' ? 'सक्रिय फसल (चयनित)' : 'Active Dedicated Crop'}</span>
-                    </div>
-                  ) : (
-                    <div style={{
-                      backgroundColor: '#f8fafc',
-                      color: '#334155',
-                      border: '1px solid #cbd5e1',
-                      fontSize: '12px',
-                      fontWeight: '700',
-                      padding: '7px 12px',
-                      borderRadius: '8px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '6px'
-                    }}>
-                      <span>{lang === 'hi' ? 'इस फसल का प्रबंधन करें' : 'Manage this Crop'}</span>
-                      <ArrowRight size={14} />
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', flexWrap: 'wrap', gap: '14px' }}>
+      {allFarms.length > 0 && data && (
+        <>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', flexWrap: 'wrap', gap: '14px' }}>
         <div>
           <h1 style={{ fontSize: '26px', fontWeight: '800', color: '#1b4332', display: 'flex', alignItems: 'center', gap: '12px', margin: 0, flexWrap: 'wrap' }}>
             <Calendar size={30} color="#2d6a4f" />
@@ -2331,6 +2397,8 @@ export default function CropScheduleAlerts() {
             </table>
           </div>
         </div>
+      )}
+        </>
       )}
 
       {showHarvestModal && (
