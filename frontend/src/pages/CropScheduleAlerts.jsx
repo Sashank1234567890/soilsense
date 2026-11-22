@@ -153,8 +153,8 @@ export default function CropScheduleAlerts() {
   const [newDistrict, setNewDistrict] = useState('Ludhiana');
   const [newState, setNewState] = useState('Punjab');
   const [newAcreage, setNewAcreage] = useState(2.5);
-  const [newCropName, setNewCropName] = useState('Wheat');
-  const [newVariety, setNewVariety] = useState('Certified High Yield');
+  const [newCropName, setNewCropName] = useState('');
+  const [newVariety, setNewVariety] = useState('');
   const [newSowingDate, setNewSowingDate] = useState(new Date().toISOString().split('T')[0]);
   const [newAssignedDeviceId, setNewAssignedDeviceId] = useState('DEVICE_001');
   const [addingFarm, setAddingFarm] = useState(false);
@@ -506,6 +506,10 @@ export default function CropScheduleAlerts() {
 
   const handleAddFarmSubmit = async (e) => {
     e.preventDefault();
+    if (!newCropName) {
+      alert(lang === 'hi' ? 'कृपया इस खेत के लिए फसल का चयन करें (अनिवार्य)।' : 'Please select a dedicated crop for this farm (Mandatory).');
+      return;
+    }
     setAddingFarm(true);
     try {
       const res = await axios.post('/api/advisory/farms', {
@@ -514,7 +518,7 @@ export default function CropScheduleAlerts() {
         state: newState,
         acreage: +newAcreage,
         cropName: newCropName,
-        variety: newVariety,
+        variety: newVariety || `${newCropName} Certified Seed`,
         sowingDate: newSowingDate,
         assignedDeviceId: newAssignedDeviceId
       });
@@ -522,17 +526,19 @@ export default function CropScheduleAlerts() {
         const createdPlotId = res.data.data.plot.plotId;
         setShowAddFarmModal(false);
         setNewFarmName('');
+        setNewCropName('');
+        setNewVariety('');
         await fetchAllFarms();
         setSearchParams({ plotId: createdPlotId });
         setSaveSuccessMsg(
           lang === 'hi'
-            ? `नया खेत सफलता से जोड़ा गया (${createdPlotId}) और सक्रिय फसल सेट हो गई!`
-            : `New Farm (${createdPlotId}) successfully added and activated!`
+            ? `नया खेत सफलता से जोड़ा गया (${createdPlotId}) और ${newCropName} फसल सेट हो गई!`
+            : `New Farm (${createdPlotId}) successfully added with ${newCropName} crop!`
         );
       }
     } catch (err) {
       console.error('Add farm failed:', err);
-      alert(lang === 'hi' ? 'खेत जोड़ने में त्रुटि आई।' : 'Error adding farm.');
+      alert(lang === 'hi' ? 'खेत जोड़ने में त्रुटि आई।' : (err.response?.data?.error || 'Error adding farm.'));
     } finally {
       setAddingFarm(false);
     }
@@ -2603,13 +2609,21 @@ export default function CropScheduleAlerts() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#334155', marginBottom: '4px' }}>
-                    {lang === 'hi' ? 'पूरे खेत की फसल' : 'Dedicated Whole Crop'}
+                    {lang === 'hi' ? 'पूरे खेत की फसल (अनिवार्य)' : 'Dedicated Whole Crop (Mandatory)'}
                   </label>
                   <select
+                    required
                     value={newCropName}
-                    onChange={(e) => setNewCropName(e.target.value)}
-                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', backgroundColor: '#fff' }}
+                    onChange={(e) => {
+                      const sel = e.target.value;
+                      setNewCropName(sel);
+                      if (!newVariety || newVariety.endsWith('Certified Seed')) {
+                        setNewVariety(sel ? `${sel} Certified Seed` : '');
+                      }
+                    }}
+                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: newCropName ? '1px solid #cbd5e1' : '1.5px solid #059669', fontSize: '13px', backgroundColor: '#fff' }}
                   >
+                    <option value="" disabled>{lang === 'hi' ? '-- फसल चुनें (अनिवार्य) --' : '-- Choose Crop (Required) --'}</option>
                     <option value="Wheat">{lang === 'hi' ? 'गेहूं (Wheat)' : 'Wheat'}</option>
                     <option value="Mustard">{lang === 'hi' ? 'सरसों (Mustard)' : 'Mustard'}</option>
                     <option value="Rice">{lang === 'hi' ? 'बासमती धान (Rice)' : 'Rice (Basmati)'}</option>
@@ -2623,6 +2637,7 @@ export default function CropScheduleAlerts() {
                   </label>
                   <input
                     type="text"
+                    placeholder={newCropName ? `${newCropName} Certified Seed` : 'e.g. PBW 725'}
                     value={newVariety}
                     onChange={(e) => setNewVariety(e.target.value)}
                     style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
@@ -2662,7 +2677,7 @@ export default function CropScheduleAlerts() {
                 </div>
               </div>
 
-              <SeasonSuitabilityAdvisory cropName={newCropName} sowingDate={newSowingDate} lang={lang} />
+              {newCropName && <SeasonSuitabilityAdvisory cropName={newCropName} sowingDate={newSowingDate} lang={lang} />}
 
               <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
                 <button

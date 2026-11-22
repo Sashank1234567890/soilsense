@@ -11,27 +11,32 @@ export default function CropToSoil() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [crops, setCrops] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     fetchCrops(searchQuery, selectedCategory);
   }, [selectedCategory]);
 
-  const fetchCrops = async (query, category) => {
+  const fetchCrops = async (query = '', category = '') => {
     setLoading(true);
+    setLoadError(false);
     try {
       const res = (!query && !category)
         ? await getCrops()
         : await searchCrops(query, category);
-      setCrops(res.data.data || []);
+      const list = res.data?.data || [];
+      setCrops(list);
       setLoading(false);
     } catch (err) {
       console.error('Failed to search crops:', err);
-      // Fallback try getCrops
       try {
         const fallback = await getCrops();
-        setCrops(fallback.data.data || []);
+        const list = fallback.data?.data || [];
+        setCrops(list);
+        setLoadError(list.length === 0);
       } catch (e2) {
         setCrops([]);
+        setLoadError(true);
       }
       setLoading(false);
     }
@@ -178,13 +183,29 @@ export default function CropToSoil() {
             </div>
           ))}
         </div>
-      ) : (
+      ) : loadError ? (
+        <div className="card" style={{ padding: '60px', textAlign: 'center' }}>
+          <h3 style={{ fontSize: '1.2rem', fontWeight: '700', color: '#dc2626' }}>
+            Crops Database Unavailable
+          </h3>
+          <p style={{ color: 'var(--text-muted)', marginTop: '8px' }}>
+            Unable to connect to the crops catalog. Please check backend server status.
+          </p>
+          <button
+            onClick={() => { setSearchQuery(''); setSelectedCategory(''); fetchCrops('', ''); }}
+            className="btn btn-primary btn-sm"
+            style={{ marginTop: '16px' }}
+          >
+            Retry Loading Crops
+          </button>
+        </div>
+      ) : (searchQuery || selectedCategory) ? (
         <div className="card" style={{ padding: '60px', textAlign: 'center' }}>
           <h3 style={{ fontSize: '1.2rem', fontWeight: '700', color: 'var(--primary-900)' }}>
             No Crops Found
           </h3>
           <p style={{ color: 'var(--text-muted)', marginTop: '8px' }}>
-            No crops matched "{searchQuery}". Try searching for Wheat, Rice, Cotton, Maize, Mustard, Potato, Tomato, Soybean, or Chickpea.
+            No crops matched "{searchQuery || selectedCategory}". Try searching for Wheat, Rice, Cotton, Maize, Mustard, Potato, Tomato, Soybean, or Chickpea.
           </p>
           <button
             onClick={() => { setSearchQuery(''); setSelectedCategory(''); fetchCrops('', ''); }}
@@ -192,6 +213,22 @@ export default function CropToSoil() {
             style={{ marginTop: '16px' }}
           >
             Clear Filters
+          </button>
+        </div>
+      ) : (
+        <div className="card" style={{ padding: '60px', textAlign: 'center' }}>
+          <h3 style={{ fontSize: '1.2rem', fontWeight: '700', color: 'var(--primary-900)' }}>
+            Crops Catalog
+          </h3>
+          <p style={{ color: 'var(--text-muted)', marginTop: '8px' }}>
+            30 verified Indian agronomic crops available.
+          </p>
+          <button
+            onClick={() => fetchCrops('', '')}
+            className="btn btn-primary btn-sm"
+            style={{ marginTop: '16px' }}
+          >
+            Load Crops
           </button>
         </div>
       )}

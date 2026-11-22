@@ -470,18 +470,24 @@ async function getOrInitCropSchedule(plotId = 'PLOT_001') {
   const assignedDeviceId = plot?.assignedDeviceId || (plotId === 'PLOT_001' ? 'DEVICE_001' : 'NONE');
 
   if (!schedule) {
-    const meta = CROP_METADATA.Wheat;
-    const sowingDate = new Date(Date.now() - 24 * 24 * 60 * 60 * 1000); // 24 days ago
-    const expectedHarvestDate = new Date(sowingDate.getTime() + meta.durationDays * 86400000);
-    const seasonSuitability = checkCropSeasonSuitability(plot?.currentCrop || 'Wheat', sowingDate);
+    if (!plot || !plot.currentCrop) {
+      // Do NOT auto-inject Wheat crop if plot has no dedicated crop
+      return null;
+    }
+
+    const cropName = plot.currentCrop;
+    const meta = CROP_METADATA[cropName] || CROP_METADATA.Wheat;
+    const sowingDate = plot.sowingDate ? new Date(plot.sowingDate) : new Date();
+    const expectedHarvestDate = new Date(sowingDate.getTime() + (meta.durationDays || 120) * 86400000);
+    const seasonSuitability = checkCropSeasonSuitability(cropName, sowingDate);
 
     schedule = await CropSchedule.create({
       plotId,
       assignedDeviceId,
-      cropName: plot?.currentCrop || 'Wheat',
-      variety: 'PBW 725 (High Yielding)',
+      cropName,
+      variety: plot.variety || `${cropName} Certified Seed`,
       sowingDate,
-      totalDurationDays: meta.durationDays,
+      totalDurationDays: meta.durationDays || 120,
       expectedHarvestDate,
       acreage: plot?.areaAcres || 2.5,
       location: {
@@ -491,7 +497,7 @@ async function getOrInitCropSchedule(plotId = 'PLOT_001') {
         lon: plot?.location?.coordinates?.longitude || 75.8573,
         autoDetected: false
       },
-      moistureThresholds: {
+      moistureThresholds: meta.moistureThresholds || {
         optimal: 55,
         soonerNotice: 40,
         criticalWilting: 25
@@ -509,7 +515,7 @@ async function getOrInitCropSchedule(plotId = 'PLOT_001') {
         smsAlert: true,
         phoneNumber: '+91 98765 43210'
       },
-      growthStages: meta.stages,
+      growthStages: meta.stages || [],
       seasonalCalendar: {
         ...(meta.seasonalCalendar || {}),
         isOptimalSeason: seasonSuitability.isOptimal
@@ -525,6 +531,29 @@ async function getOrInitCropSchedule(plotId = 'PLOT_001') {
 
 async function evaluateCropAlerts({ plotId = 'PLOT_001', currentMoisture = null, locationOverride = null }) {
   const schedule = await getOrInitCropSchedule(plotId);
+  const plot = await Plot.findOne({ plotId }).lean();
+  const archivedHarvests = await CropSchedule.find({ plotId, status: 'HARVESTED' }).sort({ harvestedAt: -1 }).limit(5).lean();
+
+  if (!schedule) {
+    return {
+      plotId,
+      hasActiveCrop: false,
+      cropName: plot?.currentCrop || '',
+      variety: '',
+      schedule: null,
+      archivedHarvests: archivedHarvests || [],
+      assignedDeviceId: plot?.assignedDeviceId || 'NONE',
+      hasLiveDevice: (plot?.assignedDeviceId && plot?.assignedDeviceId !== 'NONE'),
+      alert: {
+        type: 'NONE',
+        severity: 'info',
+        titleEn: 'No Active Dedicated Crop Planted',
+        titleHi: 'कोई सक्रिय फसल नहीं',
+        messageEn: 'Please add and select a crop for this farm to start soil & crop telemetry.',
+        messageHi: 'सटीक ट्रैकिंग के लिए कृपया इस खेत में फसल का चयन करें।'
+      }
+    };
+  }
 
   if (locationOverride) {
     schedule.location = { ...schedule.location, ...locationOverride };
@@ -628,7 +657,6 @@ async function evaluateCropAlerts({ plotId = 'PLOT_001', currentMoisture = null,
   const soonerNotice = notif.soonerThreshold || schedule.moistureThresholds.soonerNotice || 40;
   const optimal = schedule.moistureThresholds.optimal || 55;
 
-  const plot = await Plot.findOne({ plotId }).lean();
   const assignedDeviceId = schedule.assignedDeviceId || plot?.assignedDeviceId || (plotId === 'PLOT_001' ? 'DEVICE_001' : 'NONE');
   const hasLiveDevice = assignedDeviceId && assignedDeviceId !== 'NONE';
 
@@ -766,9 +794,6 @@ async function evaluateCropAlerts({ plotId = 'PLOT_001', currentMoisture = null,
     recommendedActionHi = 'वर्तमान में सिंचाई की आवश्यकता नहीं है। दैनिक निगरानी जारी रखें।';
   }
 
-  // Also query past archived harvested crops for this plot
-  const archivedHarvests = await CropSchedule.find({ plotId, status: 'HARVESTED' }).sort({ harvestedAt: -1 }).limit(5).lean();
-
   // Precise smart irrigation water budgeting (liters required based on acreage, crop target and current moisture)
   let waterDepthMm = 0;
   let irrigationUrgency = 'OPTIMAL';
@@ -869,6 +894,8 @@ async function evaluateCropAlerts({ plotId = 'PLOT_001', currentMoisture = null,
   }
 
   return {
+    cropName: schedule.cropName,
+    variety: schedule.variety,
     schedule,
     hasLiveDevice,
     assignedDeviceId,
@@ -914,31 +941,20 @@ async function evaluateCropAlerts({ plotId = 'PLOT_001', currentMoisture = null,
 }
 
 async function markCropAsHarvested({ plotId = 'PLOT_001', actualYieldQuintals = 22, harvestNotes = '' }) {
-  const schedule = await getOrInitCropSchedule(plotId);
+  const schedule = await CropSchedule.findOne({ plotId, status: 'ACTIVE' });
+  if (!schedule) {
+    throw new Error('No active crop schedule found to harvest');
+  }
   schedule.status = 'HARVESTED';
   schedule.harvestedAt = new Date();
   schedule.actualYieldQuintals = actualYieldQuintals;
   schedule.harvestNotes = harvestNotes || 'Season successfully completed and archived.';
   await schedule.save();
 
-  const meta = CROP_METADATA.Wheat;
-  const newSowingDate = new Date();
-  const newSchedule = await CropSchedule.create({
-    plotId,
-    cropName: 'Wheat',
-    variety: 'PBW 725 (High Yielding)',
-    sowingDate: newSowingDate,
-    totalDurationDays: meta.durationDays,
-    expectedHarvestDate: new Date(newSowingDate.getTime() + meta.durationDays * 86400000),
-    acreage: schedule.acreage || 2.5,
-    location: schedule.location,
-    moistureThresholds: schedule.moistureThresholds,
-    notifications: schedule.notifications,
-    growthStages: meta.stages,
-    status: 'ACTIVE'
-  });
+  // Mark the plot's current crop as empty so it doesn't auto-seed Wheat
+  await Plot.updateOne({ plotId }, { $set: { currentCrop: '' } });
 
-  return { archived: schedule, active: newSchedule };
+  return { archived: schedule };
 }
 
 async function getAllFarmsSummary(userId = null) {
@@ -1002,7 +1018,13 @@ async function getAllFarmsSummary(userId = null) {
   return summaries;
 }
 
-async function createNewFarm({ name, district = 'Ludhiana', state = 'Punjab', acreage = 2.5, cropName = 'Wheat', variety = 'PBW 725', sowingDate, soilType = 'Loamy', notifications, assignedDeviceId = 'DEVICE_001', owner = null }) {
+async function createNewFarm({ name, district = 'Ludhiana', state = 'Punjab', acreage = 2.5, cropName, variety, sowingDate, soilType = 'Loamy', notifications, assignedDeviceId = 'DEVICE_001', owner = null }) {
+  if (!cropName || !cropName.trim()) {
+    throw new Error('Dedicated crop is mandatory. Please select a crop for this farm.');
+  }
+  const cleanCrop = cropName.trim();
+  const cleanVariety = variety && variety.trim() ? variety.trim() : `${cleanCrop} Certified Seed`;
+
   const allPlots = await Plot.find({}).lean();
   let maxNum = 1;
   allPlots.forEach(p => {
@@ -1017,7 +1039,7 @@ async function createNewFarm({ name, district = 'Ludhiana', state = 'Punjab', ac
 
   const plot = await Plot.create({
     plotId: newPlotId,
-    name: name || `Farm ${newPlotId} (${cropName})`,
+    name: name || `Farm ${newPlotId} (${cleanCrop})`,
     owner: owner || null,
     areaAcres: +acreage || 2.5,
     assignedDeviceId: device,
@@ -1027,14 +1049,14 @@ async function createNewFarm({ name, district = 'Ludhiana', state = 'Punjab', ac
       locality: `${district} Ag Block`,
       coordinates: { latitude: 30.9, longitude: 75.8 }
     },
-    currentCrop: cropName,
+    currentCrop: cleanCrop,
     status: 'active'
   });
 
-  const meta = CROP_METADATA[cropName] || CROP_METADATA.Wheat;
+  const meta = CROP_METADATA[cleanCrop] || CROP_METADATA.Wheat;
   const sow = sowingDate ? new Date(sowingDate) : new Date();
   const expectedHarvestDate = new Date(sow.getTime() + meta.durationDays * 86400000);
-  const suitability = checkCropSeasonSuitability(cropName, sow);
+  const suitability = checkCropSeasonSuitability(cleanCrop, sow);
 
   const defaultNotifications = {
     enabled: true,
@@ -1054,8 +1076,8 @@ async function createNewFarm({ name, district = 'Ludhiana', state = 'Punjab', ac
   const schedule = await CropSchedule.create({
     plotId: newPlotId,
     assignedDeviceId: device,
-    cropName,
-    variety: variety || `${cropName} Certified Seed`,
+    cropName: cleanCrop,
+    variety: cleanVariety,
     sowingDate: sow,
     totalDurationDays: meta.durationDays,
     expectedHarvestDate,

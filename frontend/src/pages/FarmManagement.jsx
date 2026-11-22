@@ -46,9 +46,9 @@ export default function FarmManagement() {
   const [district, setDistrict] = useState('Ludhiana');
   const [state, setState] = useState('Punjab');
   const [acreage, setAcreage] = useState(2.5);
-  const [cropName, setCropName] = useState('Wheat');
-  const [variety, setVariety] = useState('PBW 725');
-  const [sowingDate, setSowingDate] = useState('2026-10-27');
+  const [cropName, setCropName] = useState('');
+  const [variety, setVariety] = useState('');
+  const [sowingDate, setSowingDate] = useState(new Date().toISOString().split('T')[0]);
   const [soilType, setSoilType] = useState('Loamy');
   const [assignedDeviceId, setAssignedDeviceId] = useState('DEVICE_001');
   const [submittingFarm, setSubmittingFarm] = useState(false);
@@ -95,6 +95,10 @@ export default function FarmManagement() {
   // Handle Add New Farm
   const handleAddFarmSubmit = async (e) => {
     e.preventDefault();
+    if (!cropName) {
+      alert(lang === 'hi' ? 'कृपया फसल का चयन करें (अनिवार्य)' : 'Please select a dedicated crop for this farm (Mandatory)');
+      return;
+    }
     setSubmittingFarm(true);
     try {
       const res = await axios.post('/api/advisory/farms', {
@@ -103,7 +107,7 @@ export default function FarmManagement() {
         state,
         acreage: +acreage,
         cropName,
-        variety,
+        variety: variety || `${cropName} Certified Seed`,
         sowingDate,
         soilType,
         assignedDeviceId
@@ -112,6 +116,8 @@ export default function FarmManagement() {
       if (res.data?.success) {
         setShowAddModal(false);
         setName('');
+        setCropName('');
+        setVariety('');
         setSuccessToast(
           lang === 'hi'
             ? `नया खेत सफलता से जोड़ा गया! (${res.data.data?.plot?.plotId})`
@@ -121,7 +127,7 @@ export default function FarmManagement() {
       }
     } catch (err) {
       console.error('Add farm failed:', err);
-      alert(lang === 'hi' ? 'खेत जोड़ने में त्रुटि आई।' : 'Error creating farm.');
+      alert(lang === 'hi' ? 'खेत जोड़ने में त्रुटि आई।' : (err.response?.data?.error || 'Error creating farm.'));
     } finally {
       setSubmittingFarm(false);
     }
@@ -664,13 +670,21 @@ export default function FarmManagement() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#334155', marginBottom: '4px' }}>
-                    {lang === 'hi' ? 'फसल का प्रकार' : 'Crop'}
+                    {lang === 'hi' ? 'फसल का प्रकार (अनिवार्य)' : 'Dedicated Crop (Mandatory)'}
                   </label>
                   <select
+                    required
                     value={cropName}
-                    onChange={(e) => setCropName(e.target.value)}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', backgroundColor: '#fff' }}
+                    onChange={(e) => {
+                      const sel = e.target.value;
+                      setCropName(sel);
+                      if (!variety || variety.endsWith('Certified Seed')) {
+                        setVariety(sel ? `${sel} Certified Seed` : '');
+                      }
+                    }}
+                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: cropName ? '1px solid #cbd5e1' : '1.5px solid #059669', fontSize: '13px', backgroundColor: '#fff' }}
                   >
+                    <option value="" disabled>{lang === 'hi' ? '-- फसल चुनें (अनिवार्य) --' : '-- Choose Crop (Required) --'}</option>
                     <option value="Wheat">{lang === 'hi' ? 'गेहूं (Wheat)' : 'Wheat'}</option>
                     <option value="Mustard">{lang === 'hi' ? 'सरसों (Mustard)' : 'Mustard'}</option>
                     <option value="Rice">{lang === 'hi' ? 'बासमती धान (Rice)' : 'Rice (Basmati)'}</option>
@@ -684,6 +698,7 @@ export default function FarmManagement() {
                   </label>
                   <input
                     type="text"
+                    placeholder={cropName ? `${cropName} Certified Seed` : 'e.g. PBW 725'}
                     value={variety}
                     onChange={(e) => setVariety(e.target.value)}
                     style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
