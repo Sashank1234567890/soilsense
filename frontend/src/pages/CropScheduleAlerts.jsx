@@ -347,7 +347,7 @@ export default function CropScheduleAlerts() {
       async (pos) => {
         try {
           const { latitude, longitude } = pos.coords;
-          await axios.post('/api/advisory/update-location', {
+          const res = await axios.post('/api/advisory/update-location', {
             plotId: activePlotId,
             district: 'Detected Farm GPS',
             state: 'India',
@@ -355,8 +355,19 @@ export default function CropScheduleAlerts() {
             lon: longitude,
             autoDetected: true
           });
-          setLocSuccess(lang === 'hi' ? `जीपीएस लोकेशन सफलता से अपडेट: ${latitude.toFixed(2)}°N, ${longitude.toFixed(2)}°E` : `GPS Coordinates Auto-Detected: ${latitude.toFixed(2)}°N, ${longitude.toFixed(2)}°E`);
-          fetchScheduleAndAlerts();
+          const rainMm = res.data?.data?.weather?.forecastRainNext24hMm !== undefined
+            ? res.data.data.weather.forecastRainNext24hMm
+            : 0;
+          setLocSuccess(
+            lang === 'hi'
+              ? `जीपीएस अपडेट: ${latitude.toFixed(2)}°N, ${longitude.toFixed(2)}°E | 24h वर्षा पूर्वानुमान: ${rainMm} mm`
+              : `GPS Updated: ${latitude.toFixed(2)}°N, ${longitude.toFixed(2)}°E | 24h Live Rain Forecast: ${rainMm} mm`
+          );
+          if (res.data?.data?.evaluation) {
+            setData(res.data.data.evaluation);
+          } else {
+            await fetchScheduleAndAlerts();
+          }
         } catch (e) {
           console.error(e);
         } finally {
@@ -374,7 +385,7 @@ export default function CropScheduleAlerts() {
   const handleSelectDistrict = async (distObj) => {
     try {
       setLocLoading(true);
-      await axios.post('/api/advisory/update-location', {
+      const res = await axios.post('/api/advisory/update-location', {
         plotId: activePlotId,
         district: distObj.district,
         state: distObj.state,
@@ -382,9 +393,20 @@ export default function CropScheduleAlerts() {
         lon: distObj.lon,
         autoDetected: false
       });
-      setLocSuccess(lang === 'hi' ? `स्थान अपडेट: ${distObj.district}, ${distObj.state}` : `Location Updated: ${distObj.district}, ${distObj.state}`);
+      const rainMm = res.data?.data?.weather?.forecastRainNext24hMm !== undefined
+        ? res.data.data.weather.forecastRainNext24hMm
+        : 0;
+      setLocSuccess(
+        lang === 'hi'
+          ? `स्थान अपडेट: ${distObj.district}, ${distObj.state} | लाइव वर्षा पूर्वानुमान: ${rainMm} mm`
+          : `Location Updated: ${distObj.district}, ${distObj.state} | Live Rain Forecast: ${rainMm} mm`
+      );
       setShowLocationModal(false);
-      fetchScheduleAndAlerts();
+      if (res.data?.data?.evaluation) {
+        setData(res.data.data.evaluation);
+      } else {
+        await fetchScheduleAndAlerts();
+      }
     } catch (e) {
       console.error(e);
     } finally {

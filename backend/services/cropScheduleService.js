@@ -571,13 +571,56 @@ async function evaluateCropAlerts({ plotId = 'PLOT_001', currentMoisture = null,
     currentStage = stages.find(s => das >= s.startDay && das <= s.endDay) || stages[stages.length - 1];
   }
 
-  // Weather lookup
-  const weather = await WeatherSnapshot.findOne({ plotId }).sort({ recordedAt: -1 }).lean() || {
-    forecastRainNext24hMm: 6.8,
-    temperatureCelsius: 27.2,
-    humidityPercent: 58,
-    referenceEvapotranspirationET0: 4.1
-  };
+  // Weather lookup with live Open-Meteo API query if missing or stale
+  let weather = await WeatherSnapshot.findOne({ plotId }).sort({ recordedAt: -1 }).lean();
+
+  if (!weather || (Date.now() - new Date(weather.recordedAt).getTime()) > 2 * 3600 * 1000) {
+    const lat = schedule.location?.lat || 30.9010;
+    const lon = schedule.location?.lon || 75.8573;
+    const https = require('https');
+    try {
+      const liveData = await new Promise((resolve) => {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=precipitation_sum,et0_fao_evapotranspiration,temperature_2m_max&current=temperature_2m,relative_humidity_2m&timezone=auto`;
+        const req = https.get(url, (res) => {
+          let d = '';
+          res.on('data', chunk => d += chunk);
+          res.on('end', () => {
+            try {
+              const j = JSON.parse(d);
+              resolve({
+                temperatureCelsius: +(j.current?.temperature_2m ?? 24.5).toFixed(1),
+                humidityPercent: Math.round(j.current?.relative_humidity_2m ?? 60),
+                forecastRainNext24hMm: +(j.daily?.precipitation_sum?.[0] ?? 0.0).toFixed(1),
+                referenceEvapotranspirationET0: +(j.daily?.et0_fao_evapotranspiration?.[0] ?? 3.8).toFixed(1),
+                source: 'LIVE_OPEN_METEO_API'
+              });
+            } catch (e) { resolve(null); }
+          });
+        });
+        req.on('error', () => resolve(null));
+        req.setTimeout(2500, () => { req.destroy(); resolve(null); });
+      });
+
+      if (liveData) {
+        weather = await WeatherSnapshot.create({
+          plotId,
+          location: { district: schedule.location?.district || 'Ludhiana', state: schedule.location?.state || 'Punjab' },
+          ...liveData,
+          recordedAt: new Date()
+        });
+        weather = weather.toObject();
+      }
+    } catch (e) {}
+  }
+
+  if (!weather) {
+    weather = {
+      forecastRainNext24hMm: 0.0,
+      temperatureCelsius: 24.5,
+      humidityPercent: 55,
+      referenceEvapotranspirationET0: 3.8
+    };
+  }
 
   const isRainForecasted = weather.forecastRainNext24hMm >= 5.0;
   const notif = schedule.notifications || {};

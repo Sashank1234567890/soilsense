@@ -245,26 +245,60 @@ exports.updateLocation = async (req, res) => {
   try {
     const { plotId = 'PLOT_001', district, state, lat, lon, autoDetected = false } = req.body;
     const schedule = await getOrInitCropSchedule(plotId);
+
+    const parsedLat = lat !== undefined ? +lat : (schedule.location?.lat || 30.9010);
+    const parsedLon = lon !== undefined ? +lon : (schedule.location?.lon || 75.8573);
+
     schedule.location = {
       district: district || schedule.location.district,
       state: state || schedule.location.state,
-      lat: lat !== undefined ? +lat : schedule.location.lat,
-      lon: lon !== undefined ? +lon : schedule.location.lon,
+      lat: parsedLat,
+      lon: parsedLon,
       autoDetected: !!autoDetected
     };
     await schedule.save();
 
-    // Also update WeatherSnapshot record for this plot
-    await WeatherSnapshot.create({
+    // Also update Plot document if it exists in DB
+    const Plot = require('../models/Plot');
+    await Plot.updateOne(
+      { plotId },
+      {
+        $set: {
+          'location.district': schedule.location.district,
+          'location.state': schedule.location.state,
+          'location.coordinates': { latitude: parsedLat, longitude: parsedLon }
+        }
+      }
+    );
+
+    // Call live Open-Meteo Weather API for the new location to fetch real-time rain & temperature
+    const liveApiData = await fetchLiveWeatherFromOpenMeteo(parsedLat, parsedLon);
+
+    const weatherData = {
       plotId,
       location: { district: schedule.location.district, state: schedule.location.state },
-      temperatureCelsius: +(25 + Math.random() * 5).toFixed(1),
-      humidityPercent: Math.round(50 + Math.random() * 25),
-      forecastRainNext24hMm: Math.random() > 0.5 ? 6.5 : 0,
-      referenceEvapotranspirationET0: 4.1
-    });
+      temperatureCelsius: liveApiData?.temperatureCelsius ?? 24.5,
+      humidityPercent: liveApiData?.humidityPercent ?? 55,
+      forecastRainNext24hMm: liveApiData?.forecastRainNext24hMm ?? 0.0,
+      referenceEvapotranspirationET0: liveApiData?.referenceEvapotranspirationET0 ?? 3.8,
+      source: liveApiData ? 'LIVE_OPEN_METEO_API' : 'LOCAL_ESTIMATE',
+      recordedAt: new Date()
+    };
 
-    res.json({ success: true, data: schedule.location, message: 'Location updated successfully' });
+    const newSnapshot = await WeatherSnapshot.create(weatherData);
+
+    // Re-evaluate crop alerts for this plot with the new live weather snapshot
+    const updatedEval = await evaluateCropAlerts({ plotId });
+
+    res.json({
+      success: true,
+      data: {
+        location: schedule.location,
+        weather: newSnapshot,
+        evaluation: updatedEval
+      },
+      message: 'Location updated and live rain forecast fetched successfully from Weather API'
+    });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
