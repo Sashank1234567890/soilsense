@@ -93,15 +93,17 @@ const STAGE_TRANSLATIONS = {
 };
 
 const COMMON_DISTRICTS = [
-  { district: 'Ludhiana', state: 'Punjab', lat: 30.9010, lon: 75.8573 },
-  { district: 'Karnal', state: 'Haryana', lat: 29.6857, lon: 76.9905 },
-  { district: 'Bathinda', state: 'Punjab', lat: 30.2110, lon: 74.9455 },
-  { district: 'Hisar', state: 'Haryana', lat: 29.1492, lon: 75.7217 },
-  { district: 'Indore', state: 'Madhya Pradesh', lat: 22.7196, lon: 75.8577 },
-  { district: 'Nashik', state: 'Maharashtra', lat: 19.9975, lon: 73.7898 },
-  { district: 'Kota', state: 'Rajasthan', lat: 25.2138, lon: 75.8648 },
-  { district: 'Varanasi', state: 'Uttar Pradesh', lat: 25.3176, lon: 82.9739 },
+  { district: 'Ludhiana', state: 'Punjab (Dry/Rabi)', lat: 30.9010, lon: 75.8573 },
+  { district: 'Karnal', state: 'Haryana (Dry/Rabi)', lat: 29.6857, lon: 76.9905 },
+  { district: 'Nashik', state: 'Maharashtra (Dry)', lat: 19.9975, lon: 73.7898 },
+  { district: 'Varanasi', state: 'Uttar Pradesh (Dry)', lat: 25.3176, lon: 82.9739 },
+  { district: 'Kota', state: 'Rajasthan (Dry)', lat: 25.2138, lon: 75.8648 },
+  { district: 'Thanjavur', state: 'Tamil Nadu (Active Rain 🌧️)', lat: 10.7870, lon: 79.1378 },
+  { district: 'Chennai', state: 'Tamil Nadu (Coastal Rain 🌧️)', lat: 13.0827, lon: 80.2707 },
+  { district: 'Palakkad', state: 'Kerala (Rain Showers 🌧️)', lat: 10.7867, lon: 76.6548 },
+  { district: 'Cherrapunji', state: 'Meghalaya (Rainy 🌧️)', lat: 25.2702, lon: 91.7323 },
   { district: 'Guntur', state: 'Andhra Pradesh', lat: 16.3067, lon: 80.4365 },
+  { district: 'Indore', state: 'Madhya Pradesh', lat: 22.7196, lon: 75.8577 },
   { district: 'Anand', state: 'Gujarat', lat: 22.5645, lon: 72.9289 }
 ];
 

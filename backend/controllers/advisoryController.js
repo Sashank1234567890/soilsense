@@ -277,7 +277,8 @@ exports.updateLocation = async (req, res) => {
       lon: parsedLon,
       district: schedule.location.district,
       state: schedule.location.state,
-      plotId
+      plotId,
+      forceRefresh: true
     });
 
     // Re-evaluate crop alerts for this plot with the new live weather snapshot

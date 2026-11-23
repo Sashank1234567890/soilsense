@@ -34,15 +34,20 @@ function getWeatherDescription(code) {
   }
 }
 
-async function fetchLiveWeather({ lat = 28.6139, lon = 77.2090, district = 'Delhi', state = 'Delhi', plotId = null }) {
+async function fetchLiveWeather({ lat = 28.6139, lon = 77.2090, district = 'Delhi', state = 'Delhi', plotId = null, forceRefresh = false }) {
   const latitude = +lat || 28.6139;
   const longitude = +lon || 77.2090;
 
-  // Check if we have a fresh snapshot (< 30 minutes old)
-  if (plotId) {
+  // Check if we have a fresh snapshot (< 15 minutes old) for the EXACT coordinates
+  if (plotId && !forceRefresh) {
     const cached = await WeatherSnapshot.findOne({ plotId }).sort({ recordedAt: -1 }).lean();
-    if (cached && (Date.now() - new Date(cached.recordedAt).getTime()) < 30 * 60 * 1000) {
-      return cached;
+    if (cached && (Date.now() - new Date(cached.recordedAt).getTime()) < 15 * 60 * 1000) {
+      const latDiff = Math.abs((cached.location?.lat ?? 0) - latitude);
+      const lonDiff = Math.abs((cached.location?.lon ?? 0) - longitude);
+      // Only reuse cache if coordinates match (within ~2km)
+      if (latDiff < 0.02 && lonDiff < 0.02) {
+        return cached;
+      }
     }
   }
 
