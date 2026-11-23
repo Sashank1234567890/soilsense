@@ -115,19 +115,14 @@ export default function CropDetail() {
       return;
     }
 
-    if (testMode === 'hardware' && !iotConnected) {
-      alert('Cannot create test: Arduino Uno is not connected via USB. Please connect hardware or switch to Field IoT Station mode.');
-      return;
-    }
-
     setEvaluating(true);
     setEvalResult(null);
 
     try {
       let finalValues = { ...testForm };
       let paramSources = {
-        moisture: testMode === 'hardware' ? 'hardware' : 'simulation',
-        temperature: testMode === 'hardware' ? 'hardware' : 'simulation',
+        moisture: (testMode === 'hardware' && iotConnected) ? 'hardware' : 'simulation',
+        temperature: (testMode === 'hardware' && iotConnected) ? 'hardware' : 'simulation',
         pH: 'reference',
         nitrogen: 'reference',
         phosphorus: 'reference',
@@ -867,18 +862,14 @@ export default function CropDetail() {
                   </button>
                   <button
                     type="submit"
-                    disabled={evaluating || (testMode === 'hardware' && !iotConnected)}
+                    disabled={evaluating}
                     className="btn btn-accent"
                     style={{
-                      opacity: (testMode === 'hardware' && !iotConnected) ? 0.6 : 1,
-                      cursor: (testMode === 'hardware' && !iotConnected) ? 'not-allowed' : 'pointer'
+                      opacity: 1,
+                      cursor: evaluating ? 'wait' : 'pointer'
                     }}
                   >
-                    {evaluating
-                      ? 'Evaluating compatibility...'
-                      : (testMode === 'hardware' && !iotConnected)
-                      ? 'Arduino Not Connected (Select Field Station)'
-                      : 'Run IoT Suitability Evaluation'}
+                    {evaluating ? 'Evaluating compatibility...' : 'Run IoT Suitability Evaluation'}
                   </button>
                 </div>
               </form>
