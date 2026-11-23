@@ -115,14 +115,19 @@ export default function CropDetail() {
       return;
     }
 
+    if (testMode === 'hardware' && !iotConnected) {
+      alert('Cannot create test: Arduino Uno is not connected via USB. Please connect hardware or switch to Field IoT Station mode.');
+      return;
+    }
+
     setEvaluating(true);
     setEvalResult(null);
 
     try {
       let finalValues = { ...testForm };
       let paramSources = {
-        moisture: 'hardware',
-        temperature: 'hardware',
+        moisture: testMode === 'hardware' ? 'hardware' : 'simulation',
+        temperature: testMode === 'hardware' ? 'hardware' : 'simulation',
         pH: 'reference',
         nitrogen: 'reference',
         phosphorus: 'reference',
@@ -160,7 +165,7 @@ export default function CropDetail() {
         plotId: testPlotId || testForm.plotId || 'PLOT_001',
         selectedCropId: crop._id,
         testKind: 'crop_specific',
-        overallSource: 'hardware',
+        overallSource: testMode === 'hardware' ? 'hardware' : (testMode === 'existing_profile' ? 'reference' : 'simulation'),
         values: cleanValues,
         parameterSources: paramSources,
         location: {

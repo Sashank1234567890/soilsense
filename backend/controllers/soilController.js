@@ -2,6 +2,7 @@ const SoilType = require('../models/SoilType');
 const SoilProfile = require('../models/SoilProfile');
 const SoilTest = require('../models/SoilTest');
 const Crop = require('../models/Crop');
+const SensorReading = require('../models/SensorReading');
 const { soilTestSchema } = require('../validators');
 const { analyzeSoilCondition } = require('../services/soilAnalysisService');
 const { classifySoil } = require('../services/soilClassificationService');
@@ -113,6 +114,21 @@ async function createSoilTest(req, res) {
     const { error, value } = soilTestSchema.validate(req.body);
     if (error) {
       return res.status(400).json({ success: false, message: error.details[0].message });
+    }
+
+    // Guard: Disallow creating a 'hardware' soil test if no live hardware telemetry was received recently
+    if (value.overallSource === 'hardware') {
+      const sixtySecondsAgo = new Date(Date.now() - 60000);
+      const recentHardwareReading = await SensorReading.findOne({
+        source: 'hardware',
+        timestamp: { $gte: sixtySecondsAgo }
+      });
+      if (!recentHardwareReading) {
+        return res.status(400).json({
+          success: false,
+          message: 'Cannot record hardware soil test: Arduino IoT probe is not connected or streaming live telemetry. Please connect hardware via USB or select simulation/field calibration mode.'
+        });
+      }
     }
 
     const testId = `TEST_${Date.now()}_${Math.floor(Math.random() * 1000)}`;

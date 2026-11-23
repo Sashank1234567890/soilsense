@@ -258,52 +258,53 @@ export default function TestYourSoil() {
   };
 
   const handleCaptureLiveReading = async () => {
-    setDeviceStatus('Reading data from IoT device probe (NODE: DEVICE_001)...');
-    try {
-      const res = await axios.get('/api/sensor/latest/DEVICE_001');
-      if (res.data?.success && res.data.data) {
-        const reading = res.data.data;
-        const mVal = reading.moisturePercentage !== undefined ? reading.moisturePercentage : reading.moisture;
-        const tVal = (reading.temperature !== null && reading.temperature !== undefined && !isNaN(reading.temperature)) ? reading.temperature : 25.7;
-        const rawVal = reading.rawValue !== undefined ? reading.rawValue : reading.rawADC;
+    if (dataSource === 'hardware' && !iotConnected) {
+      alert(lang === 'hi'
+        ? '⚠️ Arduino USB कनेक्ट नहीं है! लाइव रीडिंग लेने के लिए कृपया यूएसबी केबल लगाएं या ऊपर "🌾 त्वरित फ़ील्ड टेस्ट" चुनें।'
+        : '⚠️ Arduino USB is not connected! Please connect Arduino via USB to stream live probe telemetry, or switch to "🌾 Quick Field Test (Station Mode)" above.');
+      setDeviceStatus(lang === 'hi'
+        ? 'हार्डवेयर डिस्कनेक्टेड (स्टैंडबाई • USB केबल की प्रतीक्षा)'
+        : 'Hardware Disconnected (Standby • Awaiting USB Device)');
+      return;
+    }
 
+    setDeviceStatus(lang === 'hi' ? 'IoT डिवाइस प्रोब (DEVICE_001) से डेटा पढ़ रहे हैं...' : 'Reading data from IoT device probe (NODE: DEVICE_001)...');
+    try {
+      if (dataSource === 'hardware') {
+        const res = await axios.get('/api/sensor/latest/DEVICE_001');
+        if (res.data?.success && res.data.data) {
+          const reading = res.data.data;
+          const mVal = reading.moisturePercentage !== undefined ? reading.moisturePercentage : reading.moisture;
+          const tVal = (reading.temperature !== null && reading.temperature !== undefined && !isNaN(reading.temperature)) ? reading.temperature : 25.7;
+          const rawVal = reading.rawValue !== undefined ? reading.rawValue : reading.rawADC;
+
+          setSensorValues(prev => ({
+            ...prev,
+            moisture: Math.round(mVal * 10) / 10,
+            temperature: Math.round(tVal * 10) / 10
+          }));
+          setDeviceStatus(lang === 'hi'
+            ? `🟢 लाइव सेंसर रीडिंग प्राप्त: नमी ${mVal}%, ADC ${rawVal || 'OK'}, तापमान ${tVal}°C`
+            : `🟢 Live Telemetry Received: Moisture ${mVal}%, ADC ${rawVal || 'OK'}, Temp ${tVal}°C`);
+          return;
+        } else {
+          setDeviceStatus(lang === 'hi' ? 'हार्डवेयर डिस्कनेक्टेड: कोई सक्रिय रीडिंग नहीं मिली' : 'Hardware Disconnected: No active probe telemetry received');
+          alert(lang === 'hi' ? 'Arduino हार्डवेयर से कोई सक्रिय रीडिंग नहीं मिल रही है। कृपया USB केबल जांचें।' : 'No active reading from Arduino hardware. Please check your USB cable.');
+          return;
+        }
+      } else {
+        // Field sensor / station mode: standard calibration
+        const calibratedMoisture = 48.0;
+        const calibratedTemp = 24.5;
         setSensorValues(prev => ({
           ...prev,
-          moisture: Math.round(mVal * 10) / 10,
-          temperature: Math.round(tVal * 10) / 10
+          moisture: calibratedMoisture,
+          temperature: calibratedTemp
         }));
         setDeviceStatus(lang === 'hi'
-          ? `🟢 लाइव सेंसर रीडिंग प्राप्त: नमी ${mVal}%, ADC ${rawVal || 'OK'}, तापमान ${tVal}°C`
-          : `🟢 Live Telemetry Received: Moisture ${mVal}%, ADC ${rawVal || 'OK'}, Temp ${tVal}°C`);
-        return;
+          ? `🟢 फ़ील्ड स्टेशन कैलिब्रेटेड रीडिंग: नमी ${calibratedMoisture}%, तापमान ${calibratedTemp}°C`
+          : `🟢 Field Station Calibrated Reading: Moisture ${calibratedMoisture}%, Temp ${calibratedTemp}°C`);
       }
-
-      // Live IoT probe calibrated telemetry ingestion fallback
-      const randomMoisture = Math.round((42 + Math.random() * 14) * 10) / 10;
-      const rawADC = Math.round(820 - (randomMoisture / 100.0) * (820 - 350));
-      const tempVal = 25.7;
-      const ingestionId = `LIVE_PROBE_${Date.now()}`;
-
-      try {
-        await axios.post('/api/sensor/readings', {
-          deviceId: 'DEVICE_001',
-          plotId: locationForm.plotName || 'PLOT_001',
-          rawValue: rawADC,
-          moisturePercentage: randomMoisture,
-          temperature: tempVal,
-          source: 'hardware',
-          ingestionId
-        });
-      } catch (e) {}
-
-      setSensorValues(prev => ({
-        ...prev,
-        moisture: randomMoisture,
-        temperature: tempVal
-      }));
-      setDeviceStatus(lang === 'hi'
-        ? `🟢 फ़ील्ड स्टेशन रीडिंग प्राप्त: नमी ${randomMoisture}%, तापमान ${tempVal}°C`
-        : `🟢 Field Station Reading Received: Moisture ${randomMoisture}%, Temp ${tempVal}°C`);
     } catch (err) {
       setDeviceStatus('Probe telemetry streaming active: ' + err.message);
     }
@@ -311,6 +312,13 @@ export default function TestYourSoil() {
 
   const handleGenerateReport = async (e) => {
     if (e) e.preventDefault();
+
+    if (dataSource === 'hardware' && !iotConnected) {
+      alert(lang === 'hi'
+        ? '⚠️ Arduino हार्डवेयर कनेक्ट नहीं है! लाइव यूएसबी मोड में रिपोर्ट बनाना अवरुद्ध है। बिना हार्डवेयर के जांच करने के लिए कृपया ऊपर "🌾 त्वरित फ़ील्ड टेस्ट" चुनें।'
+        : '⚠️ Arduino hardware is not connected! Creating a live hardware test is blocked while disconnected. To test your soil without hardware, please select "🌾 Quick Field Test (Station Mode)" above.');
+      return;
+    }
 
     setLoading(true);
 
@@ -356,7 +364,7 @@ export default function TestYourSoil() {
       const testRes = await createSoilTest({
         plotId: valPlotId || locationForm.plotName || 'PLOT_001',
         testKind: 'general',
-        overallSource: 'hardware',
+        overallSource: dataSource === 'hardware' ? 'hardware' : (dataSource === 'registered_profile' ? 'reference' : 'simulation'),
         values: cleanValues,
         parameterSources: paramSources,
         location: locationForm
@@ -614,61 +622,59 @@ export default function TestYourSoil() {
                 type="button"
                 onClick={handleCaptureLiveReading}
                 style={{
-                  backgroundColor: '#16a34a',
+                  backgroundColor: (dataSource === 'hardware' && !iotConnected) ? '#9ca3af' : '#16a34a',
                   color: '#ffffff',
                   border: 'none',
                   borderRadius: '8px',
                   padding: '10px 20px',
                   fontWeight: '700',
                   fontSize: '14px',
-                  cursor: 'pointer',
+                  cursor: (dataSource === 'hardware' && !iotConnected) ? 'not-allowed' : 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  boxShadow: '0 2px 8px rgba(22, 163, 74, 0.35)',
+                  boxShadow: (dataSource === 'hardware' && !iotConnected) ? 'none' : '0 2px 8px rgba(22, 163, 74, 0.35)',
+                  opacity: (dataSource === 'hardware' && !iotConnected) ? 0.65 : 1,
                   transition: 'all 0.2s ease'
                 }}
+                disabled={dataSource === 'hardware' && !iotConnected}
               >
                 <Radio size={18} />
-                <span>{lang === 'hi' ? '📡 लाइव रीडिंग लें' : '📡 Take Reading Now'}</span>
+                <span>
+                  {dataSource === 'hardware' && !iotConnected
+                    ? (lang === 'hi' ? '⚠️ हार्डवेयर डिस्कनेक्टेड' : '⚠️ Hardware Disconnected')
+                    : (lang === 'hi' ? '📡 लाइव रीडिंग लें' : '📡 Take Reading Now')}
+                </span>
               </button>
             </div>
 
             {dataSource === 'hardware' && !iotConnected && (
               <div style={{
-                backgroundColor: '#fffbeb',
-                border: '1.5px solid #fde68a',
+                backgroundColor: '#fef2f2',
+                border: '1.5px solid #fecaca',
                 borderRadius: '8px',
                 padding: '14px 18px',
                 marginBottom: '20px',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
                 gap: '12px',
-                color: '#92400e',
+                color: '#991b1b',
                 fontSize: '0.88rem'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <AlertTriangle size={20} color="#d97706" style={{ flexShrink: 0 }} />
-                  <div>
-                    <strong>{lang === 'hi' ? 'Arduino USB स्टैंडबाई:' : 'Arduino USB on Standby:'}</strong> {lang === 'hi' ? 'Arduino Uno को USB से कनेक्ट करें या सीधे उपलब्ध रीडिंग लोड करें।' : 'Connect Arduino via USB or load latest reading below.'}
-                  </div>
+                <AlertTriangle size={22} color="#dc2626" style={{ flexShrink: 0 }} />
+                <div>
+                  <strong style={{ color: '#b91c1c', display: 'block', marginBottom: '2px' }}>
+                    {lang === 'hi' ? '🚫 हार्डवेयर डिस्कनेक्टेड (रिपोर्ट बनाना अवरुद्ध है):' : '🚫 Hardware Disconnected (Test Creation Blocked):'}
+                  </strong>
+                  {lang === 'hi'
+                    ? 'Arduino Uno यूएसबी से कनेक्ट नहीं है। जब तक भौतिक हार्डवेयर कनेक्ट नहीं होता, लाइव हार्डवेयर रिपोर्ट नहीं बनाई जा सकती। बिना हार्डवेयर के जांच करने के लिए कृपया ऊपर "🌾 त्वरित फ़ील्ड टेस्ट (स्टेशन मोड)" चुनें।'
+                    : 'Arduino Uno is not connected via USB. You cannot create a live hardware soil test while physical probe is disconnected. To evaluate your soil without physical hardware, please select "🌾 Quick Field Test (Station Mode)" above.'}
                 </div>
-                <button
-                  type="button"
-                  onClick={handleCaptureLiveReading}
-                  className="btn btn-sm btn-primary"
-                  style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
-                >
-                  <Cpu size={14} />
-                  <span>{lang === 'hi' ? '⚡ रीडिंग लोड करें' : '⚡ Load Current Reading'}</span>
-                </button>
               </div>
             )}
               <div style={{
-                backgroundColor: 'var(--badge-hw-bg)',
-                border: '1px solid #bae6fd',
+                backgroundColor: dataSource === 'hardware' ? (iotConnected ? 'var(--badge-hw-bg)' : '#fef2f2') : '#f0fdf4',
+                border: `1px solid ${dataSource === 'hardware' ? (iotConnected ? '#bae6fd' : '#fecaca') : '#bbf7d0'}`,
                 borderRadius: '8px',
                 padding: '12px 16px',
                 marginBottom: '20px',
@@ -678,14 +684,25 @@ export default function TestYourSoil() {
                 flexWrap: 'wrap',
                 gap: '10px'
               }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.84rem', color: '#0369a1' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.84rem', color: dataSource === 'hardware' ? (iotConnected ? '#0369a1' : '#b91c1c') : '#15803d' }}>
                   <Radio size={16} />
-                  <span><strong>{lang === 'hi' ? 'डेटा स्रोत:' : 'Data Stream:'}</strong> {dataSource === 'hardware' ? (lang === 'hi' ? 'Arduino Uno (लाइव USB सेंसर A0/A1)' : 'Arduino Uno (Live USB Sensors A0/A1)') : (lang === 'hi' ? 'फ़ील्ड स्टेशन मानक डेटा' : 'Field Station Calibrated Telemetry')}</span>
+                  <span>
+                    <strong>{lang === 'hi' ? 'डेटा स्रोत:' : 'Data Stream:'}</strong>{' '}
+                    {dataSource === 'hardware'
+                      ? (iotConnected
+                          ? (lang === 'hi' ? 'Arduino Uno (लाइव USB सेंसर A0/A1)' : 'Arduino Uno (Live USB Sensors A0/A1)')
+                          : (lang === 'hi' ? 'Arduino Uno डिस्कनेक्टेड (सेंसर ऑफलाइन)' : 'Arduino Uno Disconnected (Probe Offline)'))
+                      : (dataSource === 'field_sensor'
+                          ? (lang === 'hi' ? 'त्वरित फ़ील्ड स्टेशन मानक डेटा' : 'Quick Field Station Calibrated Telemetry')
+                          : (lang === 'hi' ? 'पंजीकृत खेत प्रोफ़ाइल बेसलाइन' : 'Registered Farm Profile Baseline'))}
+                  </span>
                 </div>
-                <span className={`badge ${iotConnected ? 'badge-suitable' : 'badge-ref'}`} style={{ fontSize: '0.72rem' }}>
-                  {iotConnected
-                    ? (lang === 'hi' ? '● लाइव USB कनेक्टेड' : '● Live USB Connected')
-                    : (lang === 'hi' ? '● स्टेशन आधारित' : '● Station Mode')}
+                <span className={`badge ${dataSource === 'hardware' ? (iotConnected ? 'badge-suitable' : 'badge-unsuitable') : 'badge-suitable'}`} style={{ fontSize: '0.72rem' }}>
+                  {dataSource === 'hardware'
+                    ? (iotConnected
+                        ? (lang === 'hi' ? '● लाइव USB कनेक्टेड' : '● Live USB Connected')
+                        : (lang === 'hi' ? '○ हार्डवेयर डिस्कनेक्टेड' : '○ Hardware Disconnected'))
+                    : (lang === 'hi' ? '● त्वरित फ़ील्ड टेस्ट' : '● Quick Field Test')}
                 </span>
               </div>
 
@@ -708,8 +725,12 @@ export default function TestYourSoil() {
                       fontFamily: 'JetBrains Mono'
                     }}
                   />
-                  <span className="badge badge-hw" style={{ marginTop: '4px' }}>
-                    {lang === 'hi' ? 'सेंसर पिन A0 (लाइव)' : 'Sensor Pin A0 (Live)'}
+                  <span className={`badge ${dataSource === 'hardware' ? (iotConnected ? 'badge-hw' : 'badge-unsuitable') : 'badge-ref'}`} style={{ marginTop: '4px' }}>
+                    {dataSource === 'hardware'
+                      ? (iotConnected
+                          ? (lang === 'hi' ? 'सेंसर पिन A0 (लाइव)' : 'Sensor Pin A0 (Live)')
+                          : (lang === 'hi' ? 'सेंसर डिस्कनेक्टेड' : 'Sensor Disconnected'))
+                      : (lang === 'hi' ? 'फ़ील्ड मानक मान' : 'Field Calibrated')}
                   </span>
                 </div>
 
@@ -730,8 +751,12 @@ export default function TestYourSoil() {
                       fontFamily: 'JetBrains Mono'
                     }}
                   />
-                  <span className="badge badge-hw" style={{ marginTop: '4px' }}>
-                    {lang === 'hi' ? 'सेंसर / GPS मौसम' : 'Probe / GPS Weather'}
+                  <span className={`badge ${dataSource === 'hardware' ? (iotConnected ? 'badge-hw' : 'badge-unsuitable') : 'badge-ref'}`} style={{ marginTop: '4px' }}>
+                    {dataSource === 'hardware'
+                      ? (iotConnected
+                          ? (lang === 'hi' ? 'थर्मल प्रोब A1 (लाइव)' : 'Thermal Probe A1 (Live)')
+                          : (lang === 'hi' ? 'प्रोब डिस्कनेक्टेड' : 'Probe Disconnected'))
+                      : (lang === 'hi' ? 'मौसम / फ़ील्ड तापमान' : 'Weather / Field Temp')}
                   </span>
                 </div>
 
@@ -800,28 +825,31 @@ export default function TestYourSoil() {
               <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '16px', borderTop: '1px solid var(--border-light)' }}>
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || (dataSource === 'hardware' && !iotConnected)}
                   className="btn btn-primary btn-lg"
                   style={{
-                    backgroundColor: '#15803d',
+                    backgroundColor: (dataSource === 'hardware' && !iotConnected) ? '#9ca3af' : '#15803d',
                     color: '#ffffff',
                     fontWeight: '800',
                     fontSize: '15px',
                     padding: '14px 28px',
                     borderRadius: '10px',
                     border: 'none',
-                    cursor: loading ? 'wait' : 'pointer',
+                    cursor: (dataSource === 'hardware' && !iotConnected) ? 'not-allowed' : (loading ? 'wait' : 'pointer'),
                     display: 'flex',
                     alignItems: 'center',
                     gap: '10px',
-                    boxShadow: '0 4px 12px rgba(21, 128, 61, 0.35)'
+                    boxShadow: (dataSource === 'hardware' && !iotConnected) ? 'none' : '0 4px 12px rgba(21, 128, 61, 0.35)',
+                    opacity: (dataSource === 'hardware' && !iotConnected) ? 0.65 : 1
                   }}
                 >
                   <Sparkles size={20} />
                   <span>
                     {loading
                       ? (lang === 'hi' ? 'मिट्टी का वैज्ञानिक विश्लेषण हो रहा है...' : 'Evaluating soil telemetry & diagnostics...')
-                      : (lang === 'hi' ? '📊 मिट्टी का स्वास्थ्य कार्ड व सलाह देखें' : '📊 Generate Soil Health Card & Recommendations')}
+                      : (dataSource === 'hardware' && !iotConnected)
+                        ? (lang === 'hi' ? '⚠️ हार्डवेयर डिस्कनेक्टेड: रिपोर्ट नहीं बन सकती (ऊपर मोड बदलें)' : '⚠️ Hardware Disconnected: Cannot Create Report (Switch Method Above)')
+                        : (lang === 'hi' ? '📊 मिट्टी का स्वास्थ्य कार्ड व सलाह देखें' : '📊 Generate Soil Health Card & Recommendations')}
                   </span>
                 </button>
               </div>
