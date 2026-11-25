@@ -6,6 +6,7 @@ const sensorReadingSchema = new mongoose.Schema({
   rawValue: { type: Number, required: true }, // ADC value (e.g. 0 - 1023)
   moisturePercentage: { type: Number, required: true, min: 0, max: 100 },
   temperature: { type: Number, default: null }, // Optional °C
+  ledStatus: { type: String, enum: ['RED_ALERT', 'GREEN_OPTIMAL', 'OFF'], default: 'GREEN_OPTIMAL' },
   timestamp: { type: Date, default: Date.now, index: true },
   source: { type: String, enum: ['hardware', 'simulation'], required: true, default: 'simulation' },
   ingestionId: { type: String, required: true, unique: true, index: true }, // Deduplication / Idempotency UUID

@@ -9,6 +9,7 @@ const sensorReadingSchema = Joi.object({
   timestamp: Joi.date().iso().optional().default(() => new Date()),
   source: Joi.string().valid('hardware', 'simulation').required(),
   ingestionId: Joi.string().trim().required(),
+  ledStatus: Joi.string().optional(),
   metadata: Joi.object().optional()
 });
 

@@ -25,7 +25,10 @@ import {
   Leaf,
   TrendingUp,
   Crosshair,
-  Navigation
+  Navigation,
+  Clock,
+  Zap,
+  RefreshCw
 } from 'lucide-react';
 import axios from 'axios';
 import {
@@ -51,6 +54,11 @@ export default function TestYourSoil() {
   const [dataSource, setDataSource] = useState('field_sensor'); // 'hardware', 'field_sensor', 'registered_profile'
   const [deviceStatus, setDeviceStatus] = useState('Hardware Disconnected (Standby • Awaiting USB Device)');
   const [iotConnected, setIotConnected] = useState(false);
+  const [autoSyncCountdown, setAutoSyncCountdown] = useState(15);
+  const [lastAutoSyncTime, setLastAutoSyncTime] = useState(null);
+  const [autoSyncEnabled, setAutoSyncEnabled] = useState(true);
+  const [arduinoLedState, setArduinoLedState] = useState('GREEN_OPTIMAL');
+  const [showWiringGuide, setShowWiringGuide] = useState(false);
   const [profiles, setProfiles] = useState([]);
   const [selectedProfileId, setSelectedProfileId] = useState('');
 
@@ -188,25 +196,47 @@ export default function TestYourSoil() {
     }
   }, [user]);
 
-  useEffect(() => {
-    const fetchInitialSensorData = async () => {
-      try {
-        const res = await axios.get('/api/sensor/latest/DEVICE_001');
-        if (res.data?.success && res.data.data) {
-          const reading = res.data.data;
-          const mVal = reading.moisturePercentage !== undefined ? reading.moisturePercentage : reading.moisture;
-          const tVal = (reading.temperature !== null && reading.temperature !== undefined && !isNaN(reading.temperature)) ? reading.temperature : 25.7;
-          if (mVal !== undefined && !isNaN(mVal)) {
-            setSensorValues(prev => ({
-              ...prev,
-              moisture: Math.round(mVal * 10) / 10,
-              temperature: Math.round(tVal * 10) / 10
-            }));
-          }
+  const fetchLiveReading = async (isAuto = false) => {
+    try {
+      const res = await axios.get('/api/sensor/latest/DEVICE_001');
+      if (res.data?.success && res.data.data) {
+        const reading = res.data.data;
+        const mVal = reading.moisturePercentage !== undefined ? reading.moisturePercentage : reading.moisture;
+        const tVal = (reading.temperature !== null && reading.temperature !== undefined && !isNaN(reading.temperature)) ? reading.temperature : 25.7;
+        const rawVal = reading.rawValue !== undefined ? reading.rawValue : reading.rawADC;
+        const led = reading.ledStatus || (mVal >= 65 ? 'RED_ALERT' : 'GREEN_OPTIMAL');
+
+        if (mVal !== undefined && !isNaN(mVal)) {
+          setSensorValues(prev => ({
+            ...prev,
+            moisture: Math.round(mVal * 10) / 10,
+            temperature: Math.round(tVal * 10) / 10
+          }));
         }
-      } catch (err) {}
-    };
-    fetchInitialSensorData();
+        setArduinoLedState(led);
+        setLastAutoSyncTime(new Date());
+
+        if (isAuto) {
+          setDeviceStatus(lang === 'hi'
+            ? `🟢 15s स्वतः-रीडिंग: नमी ${Math.round(mVal * 10) / 10}%, तापमान ${Math.round(tVal * 10) / 10}°C (Arduino ${led === 'RED_ALERT' ? '🔴 लाल LED ऑन' : '🟢 हरी LED ऑन'})`
+            : `🟢 15s Auto-Sync: Moisture ${Math.round(mVal * 10) / 10}%, Temp ${Math.round(tVal * 10) / 10}°C (Arduino ${led === 'RED_ALERT' ? '🔴 Red LED ON' : '🟢 Green LED ON'})`);
+        } else {
+          setDeviceStatus(lang === 'hi'
+            ? `🟢 लाइव USB सेंसर रीडिंग: नमी ${Math.round(mVal * 10) / 10}%, ADC ${rawVal || 'OK'}, तापमान ${Math.round(tVal * 10) / 10}°C (Arduino ${led === 'RED_ALERT' ? '🔴 लाल LED ऑन' : '🟢 हरी LED ऑन'})`
+            : `🟢 Live Telemetry Received: Moisture ${Math.round(mVal * 10) / 10}%, ADC ${rawVal || 'OK'}, Temp ${Math.round(tVal * 10) / 10}°C (Arduino ${led === 'RED_ALERT' ? '🔴 Red LED ON' : '🟢 Green LED ON'})`);
+        }
+        return true;
+      }
+    } catch (err) {
+      if (!isAuto) {
+        console.warn('Live reading fetch error:', err.message);
+      }
+    }
+    return false;
+  };
+
+  useEffect(() => {
+    fetchLiveReading(false);
   }, []);
 
   useEffect(() => {
@@ -216,19 +246,50 @@ export default function TestYourSoil() {
         const connected = res.data?.connected || false;
         setIotConnected(connected);
         if (connected) {
-          setDeviceStatus('Online (Streaming Live USB Telemetry • 9600 Baud)');
+          if (res.data?.ledStatus) {
+            setArduinoLedState(res.data.ledStatus);
+          } else if (res.data?.moisture !== undefined) {
+            setArduinoLedState(res.data.moisture >= 65 ? 'RED_ALERT' : 'GREEN_OPTIMAL');
+          }
+          setDeviceStatus(lang === 'hi'
+            ? 'लाइव कनेक्टेड (USB टेलीमेट्री सक्रिय • 15s ऑटो-रीडिंग ऑन)'
+            : 'Online (Streaming Live USB Telemetry • 15s Auto-Reading On)');
         } else {
-          setDeviceStatus('Hardware Disconnected (Standby • Awaiting USB Device)');
+          setDeviceStatus(lang === 'hi'
+            ? 'हार्डवेयर स्टैंडबाई (USB डिवाइस की प्रतीक्षा)'
+            : 'Hardware Disconnected (Standby • Awaiting USB Device)');
         }
       } catch (e) {
         setIotConnected(false);
-        setDeviceStatus('Hardware Disconnected (Standby)');
+        setDeviceStatus(lang === 'hi' ? 'हार्डवेयर स्टैंडबाई' : 'Hardware Disconnected (Standby)');
       }
     };
     checkStatus();
-    const interval = setInterval(checkStatus, 4000);
+    const interval = setInterval(checkStatus, 3000);
     return () => clearInterval(interval);
-  }, []);
+  }, [lang]);
+
+  // Automatic 15-second telemetry polling timer when connected
+  useEffect(() => {
+    let timer = null;
+    if (autoSyncEnabled && iotConnected) {
+      timer = setInterval(() => {
+        setAutoSyncCountdown(prev => {
+          if (prev <= 1) {
+            fetchLiveReading(true);
+            return 15;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      setAutoSyncCountdown(15);
+    }
+
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [autoSyncEnabled, iotConnected, lang]);
 
   const fetchRegisteredProfiles = async () => {
     try {
@@ -259,27 +320,12 @@ export default function TestYourSoil() {
 
   const handleCaptureLiveReading = async () => {
     setDeviceStatus(lang === 'hi' ? 'रीडिंग प्राप्त की जा रही है...' : 'Capturing sensor telemetry...');
+    setAutoSyncCountdown(15);
+
     try {
       if (dataSource === 'hardware') {
-        if (iotConnected) {
-          const res = await axios.get('/api/sensor/latest/DEVICE_001');
-          if (res.data?.success && res.data.data) {
-            const reading = res.data.data;
-            const mVal = reading.moisturePercentage !== undefined ? reading.moisturePercentage : reading.moisture;
-            const tVal = (reading.temperature !== null && reading.temperature !== undefined && !isNaN(reading.temperature)) ? reading.temperature : 25.7;
-            const rawVal = reading.rawValue !== undefined ? reading.rawValue : reading.rawADC;
-
-            setSensorValues(prev => ({
-              ...prev,
-              moisture: Math.round(mVal * 10) / 10,
-              temperature: Math.round(tVal * 10) / 10
-            }));
-            setDeviceStatus(lang === 'hi'
-              ? `🟢 लाइव USB सेंसर रीडिंग प्राप्त: नमी ${mVal}%, ADC ${rawVal || 'OK'}, तापमान ${tVal}°C`
-              : `🟢 Live Telemetry Received: Moisture ${mVal}%, ADC ${rawVal || 'OK'}, Temp ${tVal}°C`);
-            return;
-          }
-        }
+        const ok = await fetchLiveReading(false);
+        if (ok) return;
 
         // Standby/fallback when Arduino hardware is offline
         const sampleMoisture = 52.4;
@@ -289,6 +335,7 @@ export default function TestYourSoil() {
           moisture: sampleMoisture,
           temperature: sampleTemp
         }));
+        setArduinoLedState(sampleMoisture >= 65 ? 'RED_ALERT' : 'GREEN_OPTIMAL');
         setDeviceStatus(lang === 'hi'
           ? `🟡 Arduino स्टैंडबाई: कैलिब्रेटेड टेस्ट रीडिंग लोड की गई (नमी ${sampleMoisture}%, तापमान ${sampleTemp}°C)`
           : `🟡 Arduino Standby: Loaded calibrated test reading (Moisture ${sampleMoisture}%, Temp ${sampleTemp}°C)`);
@@ -302,6 +349,7 @@ export default function TestYourSoil() {
           moisture: calibratedMoisture,
           temperature: calibratedTemp
         }));
+        setArduinoLedState(calibratedMoisture >= 65 ? 'RED_ALERT' : 'GREEN_OPTIMAL');
         setDeviceStatus(lang === 'hi'
           ? `🟢 फ़ील्ड स्टेशन कैलिब्रेटेड रीडिंग: नमी ${calibratedMoisture}%, तापमान ${calibratedTemp}°C`
           : `🟢 Field Station Calibrated Reading: Moisture ${calibratedMoisture}%, Temp ${calibratedTemp}°C`);
@@ -612,28 +660,247 @@ export default function TestYourSoil() {
                 </div>
               </div>
 
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={() => setAutoSyncEnabled(prev => !prev)}
+                  style={{
+                    backgroundColor: autoSyncEnabled && iotConnected ? '#ecfdf5' : '#f8fafc',
+                    color: autoSyncEnabled && iotConnected ? '#065f46' : '#64748b',
+                    border: `1.5px solid ${autoSyncEnabled && iotConnected ? '#86efac' : '#cbd5e1'}`,
+                    borderRadius: '8px',
+                    padding: '9px 14px',
+                    fontWeight: '700',
+                    fontSize: '12.5px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    transition: 'all 0.2s ease'
+                  }}
+                  title={lang === 'hi' ? '15-सेकंड स्वतः रीडिंग ऑन/ऑफ करें' : 'Toggle 15s Automatic Telemetry Polling'}
+                >
+                  <Clock size={15} color={autoSyncEnabled && iotConnected ? '#059669' : '#64748b'} />
+                  <span>
+                    {autoSyncEnabled && iotConnected
+                      ? (lang === 'hi' ? `⚡ ऑटो-रीडिंग: ${autoSyncCountdown}s` : `⚡ Auto-Sync: ${autoSyncCountdown}s`)
+                      : (lang === 'hi' ? '⏱️ 15s ऑटो-सिंक (स्टैंडबाई)' : '⏱️ 15s Auto-Sync (Standby)')}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleCaptureLiveReading}
+                  style={{
+                    backgroundColor: '#16a34a',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '9px 18px',
+                    fontWeight: '700',
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    boxShadow: '0 2px 8px rgba(22, 163, 74, 0.35)',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <RefreshCw size={15} />
+                  <span>{lang === 'hi' ? '📡 अभी रीडिंग लें' : '📡 Take Reading Now'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* 15-Second Auto-Sync & Real-Time Arduino Hardware LED Indicator */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(310px, 1fr))',
+              gap: '12px',
+              marginBottom: '18px'
+            }}>
+              {/* Card 1: 15-Second Auto-Reading Telemetry */}
+              <div style={{
+                backgroundColor: iotConnected ? '#f0fdf4' : '#f8fafc',
+                border: `1.5px solid ${iotConnected ? '#86efac' : '#e2e8f0'}`,
+                borderRadius: '10px',
+                padding: '12px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '8px',
+                    backgroundColor: iotConnected ? '#dcfce7' : '#e2e8f0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    <Zap size={20} color={iotConnected ? '#15803d' : '#94a3b8'} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '13px', fontWeight: '800', color: iotConnected ? '#166534' : '#475569' }}>
+                      {iotConnected
+                        ? (lang === 'hi' ? '⚡ 15-सेकंड ऑटो-रीडिंग सक्रिय' : '⚡ 15-Second Auto-Reading Active')
+                        : (lang === 'hi' ? '⏱️ 15-सेकंड ऑटो-रीडिंग स्टैंडबाई' : '⏱️ 15-Second Auto-Reading Standby')}
+                    </div>
+                    <div style={{ fontSize: '11px', color: iotConnected ? '#15803d' : '#64748b', marginTop: '2px' }}>
+                      {iotConnected
+                        ? (lang === 'hi'
+                            ? `अगली रीडिंग: ${autoSyncCountdown}s में • अंतिम सिंक: ${lastAutoSyncTime ? lastAutoSyncTime.toLocaleTimeString() : 'अभी-अभी'}`
+                            : `Next sync: in ${autoSyncCountdown}s • Last sync: ${lastAutoSyncTime ? lastAutoSyncTime.toLocaleTimeString() : 'Initial load'}`)
+                        : (lang === 'hi'
+                            ? 'Arduino USB कनेक्ट होने पर हर 15s में स्वतः नया डेटा लोड होगा'
+                            : 'Will automatically fetch Arduino telemetry every 15s once USB is plugged in')}
+                    </div>
+                  </div>
+                </div>
+
+                {iotConnected && (
+                  <div style={{
+                    backgroundColor: '#16a34a',
+                    color: '#ffffff',
+                    fontSize: '11px',
+                    fontWeight: '800',
+                    padding: '4px 10px',
+                    borderRadius: '12px',
+                    flexShrink: 0
+                  }}>
+                    {autoSyncCountdown}s
+                  </div>
+                )}
+              </div>
+
+              {/* Card 2: Arduino Physical Red / Green LED State Indicator */}
+              {(() => {
+                const isHigh = (sensorValues.moisture >= 65) || (arduinoLedState === 'RED_ALERT');
+                return (
+                  <div style={{
+                    backgroundColor: isHigh ? '#fef2f2' : '#f0fdf4',
+                    border: `1.5px solid ${isHigh ? '#fca5a5' : '#86efac'}`,
+                    borderRadius: '10px',
+                    padding: '12px 16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '12px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <div style={{
+                        width: '38px',
+                        height: '38px',
+                        borderRadius: '50%',
+                        backgroundColor: isHigh ? '#fee2e2' : '#dcfce7',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: isHigh ? '0 0 12px rgba(239, 68, 68, 0.45)' : '0 0 12px rgba(34, 197, 94, 0.45)',
+                        flexShrink: 0
+                      }}>
+                        <span style={{
+                          width: '14px',
+                          height: '14px',
+                          borderRadius: '50%',
+                          backgroundColor: isHigh ? '#ef4444' : '#22c55e'
+                        }} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '13px', fontWeight: '800', color: isHigh ? '#b91c1c' : '#166534' }}>
+                          {isHigh
+                            ? (lang === 'hi' ? '🔴 Arduino पिन 7: लाल LED ऑन' : '🔴 Arduino Pin 7: RED LED ON')
+                            : (lang === 'hi' ? '🟢 Arduino पिन 8: हरी LED ऑन' : '🟢 Arduino Pin 8: GREEN LED ON')}
+                        </div>
+                        <div style={{ fontSize: '11px', color: isHigh ? '#991b1b' : '#15803d', marginTop: '2px' }}>
+                          {isHigh
+                            ? (lang === 'hi'
+                                ? `अत्यधिक नमी चेतावनी (${sensorValues.moisture}% >= 65%) • पिन 8 हरी LED बंद`
+                                : `High Moisture Alert (${sensorValues.moisture}% >= 65%) • Pin 8 Green LED OFF`)
+                            : (lang === 'hi'
+                                ? `नमी सामान्य एवं सुरक्षित (${sensorValues.moisture}% < 65%) • पिन 7 लाल LED बंद`
+                                : `Moisture Safe & Optimal (${sensorValues.moisture}% < 65%) • Pin 7 Red LED OFF`)}
+                        </div>
+                      </div>
+                    </div>
+
+                    <span style={{
+                      backgroundColor: isHigh ? '#ef4444' : '#16a34a',
+                      color: '#ffffff',
+                      fontSize: '11px',
+                      fontWeight: '800',
+                      padding: '4px 10px',
+                      borderRadius: '12px',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0
+                    }}>
+                      {isHigh
+                        ? (lang === 'hi' ? 'जलभराव चेतावनी' : 'High Moisture')
+                        : (lang === 'hi' ? 'नमी सुरक्षित' : 'Moisture Safe')}
+                    </span>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Circuit Pin Reference Accordion */}
+            <div style={{ marginBottom: '16px' }}>
               <button
                 type="button"
-                onClick={handleCaptureLiveReading}
+                onClick={() => setShowWiringGuide(prev => !prev)}
                 style={{
-                  backgroundColor: '#16a34a',
-                  color: '#ffffff',
+                  background: 'none',
                   border: 'none',
-                  borderRadius: '8px',
-                  padding: '10px 20px',
+                  color: '#0284c7',
+                  fontSize: '12px',
                   fontWeight: '700',
-                  fontSize: '14px',
                   cursor: 'pointer',
+                  padding: '4px 0',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px',
-                  boxShadow: '0 2px 8px rgba(22, 163, 74, 0.35)',
-                  transition: 'all 0.2s ease'
+                  gap: '6px'
                 }}
               >
-                <Radio size={18} />
-                <span>{lang === 'hi' ? '📡 रीडिंग लें' : '📡 Take Reading Now'}</span>
+                <span>{showWiringGuide ? '▲' : '▼'} {lang === 'hi' ? '🔌 Arduino LED और सेंसर पिन वायरिंग विवरण देखें' : '🔌 View Arduino LED & Sensor Wiring Pinout'}</span>
               </button>
+
+              {showWiringGuide && (
+                <div style={{
+                  backgroundColor: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '8px',
+                  padding: '12px 16px',
+                  marginTop: '6px',
+                  fontSize: '12px',
+                  color: '#334155',
+                  lineHeight: '1.6'
+                }}>
+                  <div style={{ fontWeight: '700', marginBottom: '4px', color: '#0f172a' }}>
+                    {lang === 'hi' ? 'Arduino Uno पिन कनेक्शन गाइड:' : 'Arduino Uno Pinout Quick Reference:'}
+                  </div>
+                  <ul style={{ margin: 0, paddingLeft: '18px' }}>
+                    <li>
+                      <strong>{lang === 'hi' ? 'पिन 7 (डिजिटल):' : 'Pin 7 (Digital):'}</strong> {lang === 'hi' ? '🔴 लाल LED (220Ω रेसिस्टर के साथ) → GND (नमी > 65% होने पर ऑन)' : '🔴 Red LED (via 220Ω resistor) → GND (Turns ON when moisture > 65%)'}
+                    </li>
+                    <li>
+                      <strong>{lang === 'hi' ? 'पिन 8 (डिजिटल):' : 'Pin 8 (Digital):'}</strong> {lang === 'hi' ? '🟢 हरी LED (220Ω रेसिस्टर के साथ) → GND (नमी <= 65% सामान्य होने पर ऑन)' : '🟢 Green LED (via 220Ω resistor) → GND (Turns ON when moisture <= 65%)'}
+                    </li>
+                    <li>
+                      <strong>{lang === 'hi' ? 'पिन A0 (एनालॉग):' : 'Pin A0 (Analog):'}</strong> {lang === 'hi' ? 'कैपेसिटिव सॉइल मॉइस्चर सेंसर v1.2 (सिग्नल पिन)' : 'Capacitive Soil Moisture Sensor v1.2 (Signal pin)'}
+                    </li>
+                    <li>
+                      <strong>{lang === 'hi' ? 'पिन 2 (डिजिटल):' : 'Pin 2 (Digital):'}</strong> {lang === 'hi' ? 'DS18B20 तापमान सेंसर (पीला तार) + 4.7kΩ पुल-अप रेसिस्टर 5V से' : 'DS18B20 Temp Probe (Yellow wire) + 4.7kΩ pull-up to 5V'}
+                    </li>
+                    <li>
+                      <strong>{lang === 'hi' ? 'समय सेटिंग:' : 'Timing:'}</strong> {lang === 'hi' ? 'Arduino हर 3 सेकंड में टेलीमेट्री भेजता है • वेबसाइट हर 15 सेकंड में स्वतः अपडेट होती है' : 'Arduino loops telemetry every 3 seconds • Web interface auto-polls every 15 seconds'}
+                    </li>
+                  </ul>
+                </div>
+              )}
             </div>
 
             {dataSource === 'hardware' && !iotConnected && (

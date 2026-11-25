@@ -97,7 +97,7 @@ async function checkSensorAlerts(reading) {
  * Validated Ingestion Pipeline (same for hardware and simulator)
  */
 async function ingestSensorReading(payload) {
-  const { deviceId, plotId, rawValue, moisturePercentage, temperature, timestamp, source, ingestionId, metadata } = payload;
+  const { deviceId, plotId, rawValue, moisturePercentage, temperature, timestamp, source, ingestionId, metadata, ledStatus } = payload;
 
   // 1. Idempotency Check: check if ingestionId already exists
   const existing = await SensorReading.findOne({ ingestionId });
@@ -130,6 +130,7 @@ async function ingestSensorReading(payload) {
     rawValue,
     moisturePercentage: finalMoisture,
     temperature: temperature !== undefined ? temperature : null,
+    ledStatus: ledStatus || (finalMoisture >= 65 ? 'RED_ALERT' : 'GREEN_OPTIMAL'),
     timestamp: timestamp ? new Date(timestamp) : new Date(),
     source: source || 'simulation',
     ingestionId,

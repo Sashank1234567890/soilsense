@@ -16,6 +16,11 @@
 const int MOISTURE_PIN = A0;
 const int ONE_WIRE_BUS = 2; // DS18B20 Data wire (Yellow) connected to Digital Pin 2
 
+// LED Status Indicator Pins
+const int RED_LED_PIN = 7;    // Red LED: Waterlogging / Moisture Too High (> 65%)
+const int GREEN_LED_PIN = 8;  // Green LED: Optimal Moisture Range (<= 65%)
+const float HIGH_MOISTURE_THRESHOLD = 65.0; // Moisture threshold percentage for Red LED alert
+
 // Setup OneWire and DallasTemperature instances
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
@@ -34,6 +39,12 @@ unsigned long lastTransmissionTime = 0;
 void setup() {
   Serial.begin(9600);
   pinMode(MOISTURE_PIN, INPUT);
+
+  // Configure LED pins
+  pinMode(RED_LED_PIN, OUTPUT);
+  pinMode(GREEN_LED_PIN, OUTPUT);
+  digitalWrite(RED_LED_PIN, LOW);
+  digitalWrite(GREEN_LED_PIN, LOW);
 
   // Enable internal pull-up resistor on Pin 2 for OneWire signal stability
   pinMode(ONE_WIRE_BUS, INPUT_PULLUP);
@@ -77,7 +88,19 @@ void loop() {
     sensors.requestTemperatures();
     float tempC = sensors.getTempCByIndex(0);
 
-    // 3. Construct and transmit strict JSON line
+    // 3. LED Logic:
+    // If moisture is high (> 65%), Red LED ON (Warning/Overwatered) and Green OFF
+    // If moisture is normal (<= 65%), Green LED ON (Safe/Optimal) and Red OFF
+    bool isMoistureHigh = (moisturePct >= HIGH_MOISTURE_THRESHOLD);
+    if (isMoistureHigh) {
+      digitalWrite(RED_LED_PIN, HIGH);
+      digitalWrite(GREEN_LED_PIN, LOW);
+    } else {
+      digitalWrite(RED_LED_PIN, LOW);
+      digitalWrite(GREEN_LED_PIN, HIGH);
+    }
+
+    // 4. Construct and transmit strict JSON line
     Serial.print(F("{\"deviceId\":\""));
     Serial.print(DEVICE_ID);
     Serial.print(F("\",\"plotId\":\""));
@@ -95,7 +118,9 @@ void loop() {
       Serial.print(F(",\"temperature\":null"));
     }
 
-    Serial.print(F(",\"source\":\"hardware\",\"ingestionId\":\"DEV_"));
+    Serial.print(F(",\"ledStatus\":\""));
+    Serial.print(isMoistureHigh ? F("RED_ALERT") : F("GREEN_OPTIMAL"));
+    Serial.print(F("\",\"source\":\"hardware\",\"ingestionId\":\"DEV_"));
     Serial.print(currentTime);
     Serial.println(F("\"}"));
   }

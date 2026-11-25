@@ -1982,13 +1982,37 @@ export default function CropScheduleAlerts() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
             <span style={{ fontSize: '13px', fontWeight: '700', color: '#1e293b' }}>
               {lang === 'hi' ? 'मिट्टी की नमी स्तर (Capacitive Moisture A0):' : 'Soil Volumetric Moisture Level (A0):'}
             </span>
-            <span style={{ fontSize: '16px', fontWeight: '800', color: currentMoisture < 25 ? '#dc2626' : currentMoisture < 45 ? '#d97706' : '#16a34a' }}>
-              {currentMoisture}%
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '2px 8px',
+                borderRadius: '12px',
+                fontSize: '11px',
+                fontWeight: '700',
+                backgroundColor: currentMoisture >= 65 ? '#fee2e2' : '#dcfce7',
+                color: currentMoisture >= 65 ? '#b91c1c' : '#15803d',
+                border: `1px solid ${currentMoisture >= 65 ? '#fca5a5' : '#86efac'}`
+              }}>
+                <span style={{
+                  width: '7px',
+                  height: '7px',
+                  borderRadius: '50%',
+                  backgroundColor: currentMoisture >= 65 ? '#ef4444' : '#22c55e'
+                }} />
+                {currentMoisture >= 65
+                  ? (lang === 'hi' ? 'Arduino Pin 7 🔴 लाल LED (>65%)' : 'Arduino Pin 7 🔴 Red LED (>65%)')
+                  : (lang === 'hi' ? 'Arduino Pin 8 🟢 हरी LED (सामान्य)' : 'Arduino Pin 8 🟢 Green LED (Safe)')}
+              </span>
+              <span style={{ fontSize: '16px', fontWeight: '800', color: currentMoisture < 25 ? '#dc2626' : currentMoisture < 45 ? '#d97706' : currentMoisture >= 65 ? '#dc2626' : '#16a34a' }}>
+                {currentMoisture}%
+              </span>
+            </div>
           </div>
 
           <input
