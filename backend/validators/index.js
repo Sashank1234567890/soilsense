@@ -5,13 +5,16 @@ const sensorReadingSchema = Joi.object({
   plotId: Joi.string().trim().required(),
   rawValue: Joi.number().min(0).max(1023).required(),
   moisturePercentage: Joi.number().min(0).max(100).required(),
-  temperature: Joi.number().min(-20).max(70).allow(null).optional(),
+  temperature: Joi.number().min(-50).max(125).allow(null).optional(),
+  temperatureCelsius: Joi.number().min(-50).max(125).allow(null).optional(),
+  rawTempCelsius: Joi.number().allow(null).optional(),
+  tempUnit: Joi.string().allow('', null).optional(),
   timestamp: Joi.date().iso().optional().default(() => new Date()),
   source: Joi.string().valid('hardware', 'simulation').required(),
   ingestionId: Joi.string().trim().required(),
   ledStatus: Joi.string().optional(),
   metadata: Joi.object().optional()
-});
+}).unknown(true);
 
 const soilTestSchema = Joi.object({
   plotId: Joi.string().trim().default('PLOT_001'),
