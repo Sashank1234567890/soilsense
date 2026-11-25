@@ -26,19 +26,21 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
-// --- PIN DEFINITIONS ---
-const int MOISTURE_PIN   = A0; // Capacitive Moisture Sensor Signal (Analog Pin A0)
-const int ONE_WIRE_BUS   = 2;  // DS18B20 Temperature Data Wire (Digital Pin 2)
-const int RED_LED_PIN    = 7;  // Red LED: Waterlogging / High Moisture Alert (Digital Pin 7)
-const int GREEN_LED_PIN  = 8;  // Green LED: Safe & Optimal Moisture (Digital Pin 8)
+// ============================================================================
+// ALL ARDUINO PIN DEFINITIONS (सभी पिन यहाँ साफ़-साफ़ सेट हैं)
+// ============================================================================
+const int MOISTURE_PIN       = A0; // 💧 मिट्टी की नमी (Capacitive Moisture Sensor) -> Analog Pin A0
+const int TEMPERATURE_PIN    = 2;  // 🌡️ तापमान सेंसर (DS18B20 Temp Sensor Data)    -> Digital Pin 2
+const int RED_LED_PIN        = 7;  // 🔴 लाल अलर्ट LED (High Moisture Alert > 65%)   -> Digital Pin 7
+const int GREEN_LED_PIN      = 8;  // 🟢 हरी सामान्य LED (Optimal Moisture <= 65%)   -> Digital Pin 8
 
 // --- THRESHOLDS ---
 const float HIGH_MOISTURE_THRESHOLD = 65.0; // Moisture threshold percentage for Red LED
 const float HIGH_TEMP_THRESHOLD     = 40.0; // Extreme Heat alert (°C)
 const float LOW_TEMP_THRESHOLD      = 5.0;  // Frost / Freezing alert (°C)
 
-// OneWire and DallasTemperature instances
-OneWire oneWire(ONE_WIRE_BUS);
+// OneWire and DallasTemperature instances on TEMPERATURE_PIN (Pin 2)
+OneWire oneWire(TEMPERATURE_PIN);
 DallasTemperature sensors(&oneWire);
 
 // Moisture Calibration: Dry Air ~820 (0%), Submerged in Water ~350 (100%)
@@ -62,8 +64,8 @@ void setup() {
   digitalWrite(RED_LED_PIN, LOW);
   digitalWrite(GREEN_LED_PIN, LOW);
 
-  // Enable internal pull-up on Pin 2
-  pinMode(ONE_WIRE_BUS, INPUT_PULLUP);
+  // Enable internal pull-up on Pin 2 for Temperature Data Line
+  pinMode(TEMPERATURE_PIN, INPUT_PULLUP);
 
   // Initialize DS18B20 library
   sensors.begin();
