@@ -43,9 +43,9 @@ const float LOW_TEMP_THRESHOLD      = 5.0;  // Frost / Freezing alert (°C)
 OneWire oneWire(TEMPERATURE_PIN);
 DallasTemperature sensors(&oneWire);
 
-// Moisture Calibration: Dry Air ~820 (0%), Submerged in Water ~350 (100%)
-const int DRY_ADC_VALUE = 820;
-const int WET_ADC_VALUE = 350;
+// Moisture Calibration for 3.3V Power (Dry Air ~570, Submerged in Water ~240)
+const int DRY_ADC_VALUE = 570;
+const int WET_ADC_VALUE = 240;
 
 // Identifiers & Timing
 const char* DEVICE_ID = "DEVICE_001";
@@ -100,11 +100,11 @@ float calculateMoisturePercentage(int raw) {
   return pct;
 }
 
-// Read DS18B20 temperature
-float readDS18B20Temperature() {
+// Read DS18B20 temperature in Celsius (°C)
+float readTemperatureCelsius() {
   sensors.requestTemperatures();
-  float temp = sensors.getTempCByIndex(0);
-  return temp; // Returns actual temp, or -127.0 if disconnected
+  float tempC = sensors.getTempCByIndex(0); // Fetches temperature in Celsius
+  return tempC; // Returns actual °C (e.g. 24.5 °C), or -127.0 °C if disconnected
 }
 
 void loop() {
@@ -117,15 +117,15 @@ void loop() {
     int rawMoisture = readSmoothedADC(MOISTURE_PIN);
     float moisturePct = calculateMoisturePercentage(rawMoisture);
 
-    // 2. Read Soil Temperature (Digital Pin 2)
-    float rawTemp = readDS18B20Temperature();
-    bool hasValidTemp = (rawTemp > -50.0 && rawTemp < 125.0 && rawTemp != 85.0);
+    // 2. Read Soil Temperature in Celsius (Digital Pin 2)
+    float tempCelsius = readTemperatureCelsius();
+    bool hasValidTemp = (tempCelsius > -50.0 && tempCelsius < 125.0 && tempCelsius != 85.0);
 
     // 3. LED Logic:
-    // If moisture is high (> 65%), or temperature is critical (> 40C or < 5C), Red LED ON (Alert)
+    // If moisture is high (> 65%), or temperature is critical (> 40°C or < 5°C), Red LED ON (Alert)
     // If moisture and temperature are normal, Green LED ON (Safe/Optimal)
     bool isMoistureHigh = (moisturePct >= HIGH_MOISTURE_THRESHOLD);
-    bool isTempCritical = hasValidTemp && (rawTemp >= HIGH_TEMP_THRESHOLD || rawTemp <= LOW_TEMP_THRESHOLD);
+    bool isTempCritical = hasValidTemp && (tempCelsius >= HIGH_TEMP_THRESHOLD || tempCelsius <= LOW_TEMP_THRESHOLD);
 
     if (isMoistureHigh || isTempCritical) {
       digitalWrite(RED_LED_PIN, HIGH);
@@ -145,13 +145,16 @@ void loop() {
     Serial.print(F(",\"moisturePercentage\":"));
     Serial.print(moisturePct, 1);
 
-    // Temperature in Celsius
+    // Explicitly labeled Temperature in Celsius (°C)
     if (hasValidTemp) {
       Serial.print(F(",\"temperature\":"));
-      Serial.print(rawTemp, 1);
+      Serial.print(tempCelsius, 1);
+      Serial.print(F(",\"temperatureCelsius\":"));
+      Serial.print(tempCelsius, 1);
+      Serial.print(F(",\"tempUnit\":\"Celsius\""));
     } else {
-      Serial.print(F(",\"temperature\":null,\"rawTemp\":"));
-      Serial.print(rawTemp, 1);
+      Serial.print(F(",\"temperature\":null,\"rawTempCelsius\":"));
+      Serial.print(tempCelsius, 1);
     }
 
     Serial.print(F(",\"ledStatus\":\""));
