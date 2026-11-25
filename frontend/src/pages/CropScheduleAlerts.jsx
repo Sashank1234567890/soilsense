@@ -550,6 +550,7 @@ export default function CropScheduleAlerts() {
   const alertData = data?.alert;
   const sched = data?.schedule || {};
   const hasLiveDevice = data?.hasLiveDevice !== false && assignedDeviceId !== 'NONE';
+  const isHypoxia = hasLiveDevice && (alertData?.alertLevel === 'HYPOXIA_WARNING' || alertData?.alertLevel === 'WATERLOGGING_ALERT' || currentMoisture >= 65);
   const isCritical = hasLiveDevice && alertData?.alertLevel === 'CRITICAL_HIGH_RISK';
   const isSooner = hasLiveDevice && alertData?.alertLevel === 'SOONER_NOTICE';
   const isRain = hasLiveDevice && alertData?.alertLevel === 'RAIN_SUPPRESSED';
@@ -570,6 +571,8 @@ export default function CropScheduleAlerts() {
     if (lang === 'hi') {
       if (isTimelineOnly) {
         speech = `किसान भाई, आपके खेत में ${crop} की फसल लगी है। इस खेत से कोई लाइव डिवाइस कनेक्ट नहीं है, इसलिए लाइव नमी अलर्ट उपलब्ध नहीं हैं। वर्तमान में फसल ${getStageName(data?.currentStage)} में है। समय-सारणी अनुसार सामान्य देखभाल रखें।`;
+      } else if (isHypoxia) {
+        speech = `सावधान किसान भाई, खेत में नमी अत्यधिक बढ़कर ${currentMoisture} प्रतिशत हो गई है। फसल में जलभराव व जड़ सड़न का गंभीर खतरा है। मोटर बिल्कुल बंद रखें और खेत से अतिरिक्त पानी निकालने की व्यवस्था करें।`;
       } else if (rain >= 5) {
         speech = `किसान भाई, आपके खेत में ${crop} की फसल लगी है। अगले 24 घंटे में ${rain} मिलीमीटर बारिश का अनुमान है, इसलिए आज ट्यूबवेल मोटर बंद रखें और बिजली व पानी बचाएं।`;
       } else if (isCritical) {
@@ -584,6 +587,8 @@ export default function CropScheduleAlerts() {
     } else {
       if (isTimelineOnly) {
         speech = `Farmer friend, no live hardware device is connected to this farm. Real-time moisture alerts are unavailable. Crop is progressing on its calendar timeline at stage ${getStageName(data?.currentStage)}.`;
+      } else if (isHypoxia) {
+        speech = `Warning farmer friend, soil moisture is excessively high at ${currentMoisture} percent. Severe waterlogging and root rot danger. Keep all irrigation pumps off and ensure drainage channels are clear.`;
       } else {
         speech = `Farmer friend, for your ${crop} crop on ${activePlotId}, soil moisture is ${currentMoisture} percent. ${rain >= 5 ? `Rain is expected. Keep pump motor off.` : isCritical || isSooner ? `Recommended pump runtime is approximately ${pumpHours} hours. Best watering window is 5:30 to 7:30 AM.` : `Soil condition is optimal. No watering needed today.`}`;
       }
@@ -642,35 +647,38 @@ export default function CropScheduleAlerts() {
   const displayAlertTitle = lang === 'hi'
     ? (alertData?.alertTitleHi || (
         isTimelineOnly ? `फसल समय-सीमा मोड (Timeline): ${getStageName(data?.currentStage)}` :
+        isHypoxia ? 'अत्यधिक जलभराव एवं जड़ सड़न (ऑक्सीजन ह्रास) का गंभीर खतरा' :
         isCritical ? 'अति-गंभीर जल संकट: फसल मुरझाने का उच्च खतरा' :
         isSooner ? 'पूर्व सूचना: मृदा नमी स्तर धीरे-धीरे घट रहा है' :
         isRain ? 'वर्षा आगमन: बिजली व जल बचाने हेतु सिंचाई स्थगित' :
         isHarvest ? 'फसल पककर तैयार है — कटाई का उपयुक्त समय' :
         'मृदा नमी स्तर उत्तम एवं संतुलित'
       ))
-    : (alertData?.alertTitle || alertData?.alertTitleEn);
+    : (alertData?.alertTitle || alertData?.alertTitleEn || (isHypoxia ? 'WATERLOGGING & ROOT HYPOXIA DANGER' : 'Soil Moisture Level Healthy'));
 
   const displayAlertDescription = lang === 'hi'
     ? (alertData?.alertDescriptionHi || (
         isTimelineOnly ? `इस खेत से कोई लाइव Arduino सेंसर कनेक्ट नहीं है। आप लाइव नमी अलर्ट सेट नहीं कर सकते — केवल फसल समय-सीमा और विकास अवस्थाएं (दिन ${data?.das || 0} / ${sched?.totalDurationDays || 135}) ही ट्रैक की जा रही हैं।` :
+        isHypoxia ? `मिट्टी की नमी लगातार ${currentMoisture}% पर अति-संतृप्त है। जड़ों के सूक्ष्म वायु छिद्र पानी में डूब चुके हैं, जिससे फंगस व जड़ सड़न का संकट है।` :
         isCritical ? `सेंसर नमी गिरकर ${currentMoisture}% रह गई है (क्रांतिक सीमा 24% से कम)। फसल को नुकसान से बचाने हेतु तत्काल पानी दें।` :
         isSooner ? `मिट्टी की नमी ${currentMoisture}% तक आ गई है (पूर्व सूचना सीमा 40% के निकट)। नमी दर ~0.3%/घंटे घट रही है। अगले 48 घंटों में बारिश की संभावना नहीं है।` :
         isRain ? `मिट्टी में नमी कम है, लेकिन आगामी बारिश से खेत सिंचित हो जाएगा। मोटर स्थगित रखें।` :
         isHarvest ? `फसल ने अपना विकास पूरा कर लिया है। सड़न रोकने हेतु खेत को सूखा रखें।` :
         `वर्तमान नमी (${currentMoisture}%) संतुलित स्तर में है।`
       ))
-    : alertData?.alertDescription;
+    : (alertData?.alertDescription || alertData?.alertDescriptionEn || (isHypoxia ? `Soil moisture is persistently saturated at ${currentMoisture}%. Capillary air pores are drowned, inviting Pythium damping-off root rot.` : `Current moisture (${currentMoisture}%) is well within the optimal range.`));
 
   const displayRecommendedAction = lang === 'hi'
     ? (alertData?.recommendedActionHi || (
         isTimelineOnly ? `फसल समय-सारणी के अनुसार ${getStageName(data?.currentStage)} के कृषि कार्य करें। लाइव अलर्ट चालू करने हेतु अलर्ट नियमों में डिवाइस चुनें।` :
+        isHypoxia ? 'सिंचाई तुरंत रोकें। निचले खेत से खड़े पानी को नाली काटकर बाहर निकालें।' :
         isCritical ? 'सिंचाई पंप तत्काल चालू करें। प्रातः 5:30 से 7:30 बजे के बीच लगभग 14,000 लीटर/एकड़ जल दें।' :
         isSooner ? `अगले 24 से 36 घंटों में सिंचाई चक्र की योजना बनाएं। वर्तमान अवस्था: ${getStageName(data?.currentStage)}।` :
         isRain ? 'पंप मोटर बंद रखें। खेत की जल निकासी नालियों को खुला रखें।' :
         isHarvest ? 'कंबाइन या दरांती से कटाई की योजना बनाएं।' :
         'वर्तमान में सिंचाई की आवश्यकता नहीं है। दैनिक निगरानी जारी रखें।'
       ))
-    : alertData?.recommendedAction;
+    : (alertData?.recommendedAction || alertData?.recommendedActionEn || (isHypoxia ? 'Halt all irrigation pumps immediately. Clear surface drain trenches.' : 'No irrigation required. Continue routine monitoring.'));
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 16px' }}>
@@ -1427,8 +1435,8 @@ export default function CropScheduleAlerts() {
 
       {alertData && (
         <div style={{
-          backgroundColor: isTimelineOnly ? '#f8fafc' : isCritical ? '#fef2f2' : isSooner ? '#fffbeb' : isRain ? '#eff6ff' : isHarvest ? '#fff7ed' : '#f0fdf4',
-          border: `2px solid ${isTimelineOnly ? '#94a3b8' : isCritical ? '#f87171' : isSooner ? '#fcd34d' : isRain ? '#93c5fd' : isHarvest ? '#fb923c' : '#86efac'}`,
+          backgroundColor: isTimelineOnly ? '#f8fafc' : (isCritical || isHypoxia) ? '#fef2f2' : isSooner ? '#fffbeb' : isRain ? '#eff6ff' : isHarvest ? '#fff7ed' : '#f0fdf4',
+          border: `2px solid ${isTimelineOnly ? '#94a3b8' : (isCritical || isHypoxia) ? '#f87171' : isSooner ? '#fcd34d' : isRain ? '#93c5fd' : isHarvest ? '#fb923c' : '#86efac'}`,
           borderRadius: '14px',
           padding: '22px',
           marginBottom: '24px',
@@ -1440,20 +1448,20 @@ export default function CropScheduleAlerts() {
             width: '46px',
             height: '46px',
             borderRadius: '10px',
-            backgroundColor: isTimelineOnly ? '#475569' : isCritical ? '#b91c1c' : isSooner ? '#b45309' : isRain ? '#1d4ed8' : isHarvest ? '#c2410c' : '#15803d',
+            backgroundColor: isTimelineOnly ? '#475569' : (isCritical || isHypoxia) ? '#b91c1c' : isSooner ? '#b45309' : isRain ? '#1d4ed8' : isHarvest ? '#c2410c' : '#15803d',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             color: '#fff',
             flexShrink: 0
           }}>
-            {isTimelineOnly ? <Calendar size={24} /> : isCritical ? <Siren size={26} /> : isSooner ? <Bell size={24} /> : isRain ? <CloudRain size={24} /> : isHarvest ? <Scissors size={24} /> : <CheckCircle size={24} />}
+            {isTimelineOnly ? <Calendar size={24} /> : isHypoxia ? <AlertTriangle size={26} /> : isCritical ? <Siren size={26} /> : isSooner ? <Bell size={24} /> : isRain ? <CloudRain size={24} /> : isHarvest ? <Scissors size={24} /> : <CheckCircle size={24} />}
           </div>
 
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px', flexWrap: 'wrap' }}>
               <span style={{
-                backgroundColor: isTimelineOnly ? '#475569' : isCritical ? '#b91c1c' : isSooner ? '#b45309' : isRain ? '#1d4ed8' : isHarvest ? '#c2410c' : '#15803d',
+                backgroundColor: isTimelineOnly ? '#475569' : (isCritical || isHypoxia) ? '#b91c1c' : isSooner ? '#b45309' : isRain ? '#1d4ed8' : isHarvest ? '#c2410c' : '#15803d',
                 color: '#fff',
                 fontSize: '11px',
                 fontWeight: '800',
@@ -1465,13 +1473,15 @@ export default function CropScheduleAlerts() {
                   ? (lang === 'hi' ? 'केवल समय-सीमा मोड (डिवाइस रहित)' : 'TIMELINE ONLY MODE (NO DEVICE)')
                   : isHarvest
                     ? (lang === 'hi' ? 'फसल कटाई का समय' : 'HARVEST WINDOW')
-                    : isCritical
-                      ? (lang === 'hi' ? 'अति-गंभीर जल संकट चेतावनी' : 'CRITICAL HIGH RISK SIREN')
-                      : isSooner
-                        ? (lang === 'hi' ? 'पूर्व सूचना: नमी घट रही है' : 'SOONER ADVISORY NOTICE')
-                        : isRain
-                          ? (lang === 'hi' ? 'वर्षा रक्षा सक्रिय (मोटर स्थगित)' : 'RAIN GUARD ACTIVATED')
-                          : (lang === 'hi' ? 'मृदा स्वास्थ्य इष्टतम' : 'OPTIMAL CONDITION')}
+                    : isHypoxia
+                      ? (lang === 'hi' ? '⚠️ अत्यधिक नमी व जलभराव चेतावनी' : '⚠️ HIGH MOISTURE & WATERLOGGING ALERT')
+                      : isCritical
+                        ? (lang === 'hi' ? 'अति-गंभीर जल संकट चेतावनी' : 'CRITICAL HIGH RISK SIREN')
+                        : isSooner
+                          ? (lang === 'hi' ? 'पूर्व सूचना: नमी घट रही है' : 'SOONER ADVISORY NOTICE')
+                          : isRain
+                            ? (lang === 'hi' ? 'वर्षा रक्षा सक्रिय (मोटर स्थगित)' : 'RAIN GUARD ACTIVATED')
+                            : (lang === 'hi' ? 'मृदा स्वास्थ्य इष्टतम' : 'OPTIMAL CONDITION')}
               </span>
               <span style={{ fontSize: '13px', color: '#64748b' }}>
                 {isTimelineOnly
@@ -1502,11 +1512,11 @@ export default function CropScheduleAlerts() {
               </span>
             </div>
 
-            <h2 style={{ fontSize: '18px', fontWeight: '800', color: isTimelineOnly ? '#1e293b' : isCritical ? '#991b1b' : isSooner ? '#92400e' : isRain ? '#1e40af' : isHarvest ? '#9a3412' : '#166534', margin: '6px 0 8px 0' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: '800', color: isTimelineOnly ? '#1e293b' : (isCritical || isHypoxia) ? '#991b1b' : isSooner ? '#92400e' : isRain ? '#1e40af' : isHarvest ? '#9a3412' : '#166534', margin: '6px 0 8px 0' }}>
               {displayAlertTitle}
             </h2>
 
-            <p style={{ color: isTimelineOnly ? '#334155' : isCritical ? '#7f1d1d' : isSooner ? '#78350f' : isRain ? '#1e3a8a' : isHarvest ? '#7c2d12' : '#14532d', fontSize: '14px', lineHeight: '1.6', margin: '0 0 12px 0' }}>
+            <p style={{ color: isTimelineOnly ? '#334155' : (isCritical || isHypoxia) ? '#7f1d1d' : isSooner ? '#78350f' : isRain ? '#1e3a8a' : isHarvest ? '#7c2d12' : '#14532d', fontSize: '14px', lineHeight: '1.6', margin: '0 0 12px 0' }}>
               {displayAlertDescription}
             </p>
 
@@ -1558,10 +1568,11 @@ export default function CropScheduleAlerts() {
                 <div style={{
                   fontSize: '14px',
                   fontWeight: '800',
-                  color: isTimelineOnly ? '#475569' : isCritical ? '#dc2626' : isSooner ? '#d97706' : isRain ? '#2563eb' : '#16a34a',
+                  color: isTimelineOnly ? '#475569' : (isCritical || isHypoxia) ? '#dc2626' : isSooner ? '#d97706' : isRain ? '#2563eb' : '#16a34a',
                   marginTop: '4px'
                 }}>
                   {isTimelineOnly ? (lang === 'hi' ? 'समय-सारणी अनुसार' : 'Timeline-guided')
+                    : isHypoxia ? (lang === 'hi' ? '❌ बिल्कुल नहीं (अत्यधिक नमी >65%)' : '❌ NO (EXCESSIVE WATER >65%)')
                     : isCritical ? (lang === 'hi' ? 'हाँ, तुरंत पानी दें' : 'Yes, Urgent Today')
                     : isSooner ? (lang === 'hi' ? '1-2 दिन में पानी लगाएं' : 'Plan in 24-36 Hours')
                     : isRain ? (lang === 'hi' ? 'नहीं, बारिश आने वाली है' : 'No, Rain Forecasted')
@@ -1578,9 +1589,11 @@ export default function CropScheduleAlerts() {
                 <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase' }}>
                   {lang === 'hi' ? '2. मोटर कितनी देर चलाएं?' : '2. Pump Run Time'}
                 </div>
-                <div style={{ fontSize: '14px', fontWeight: '800', color: '#0f172a', marginTop: '4px' }}>
+                <div style={{ fontSize: '14px', fontWeight: '800', color: isHypoxia ? '#dc2626' : '#0f172a', marginTop: '4px' }}>
                   {isTimelineOnly
                     ? (lang === 'hi' ? 'अवस्था अनुसार (अनुमानित)' : 'Stage Dependent')
+                    : isHypoxia
+                    ? (lang === 'hi' ? '🛑 मोटर बंद रखें (जलभराव)' : '🛑 Keep Pump OFF (Saturated)')
                     : isRain || (!isCritical && !isSooner)
                     ? (lang === 'hi' ? 'मोटर बंद रखें' : 'Keep Pump OFF')
                     : (lang === 'hi' ? `लगभग ${pumpHours} घंटे (5 HP पंप)` : `~${pumpHours} Hours (5 HP Pump)`)}
@@ -1638,6 +1651,7 @@ export default function CropScheduleAlerts() {
                 <li>
                   <strong>{lang === 'hi' ? 'सिंचाई कदम:' : 'Irrigation Action:'}</strong>{' '}
                   {isTimelineOnly ? (lang === 'hi' ? `वर्तमान में फसल ${getStageName(data?.currentStage)} अवस्था में है। समय-सारणी के अनुसार ही सिंचाई चक्र का पालन करें।` : `Crop is currently in ${getStageName(data?.currentStage)}. Follow standard lifecycle irrigation schedule.`)
+                    : isHypoxia ? (lang === 'hi' ? `सिंचाई मोटर तत्काल बंद रखें! मिट्टी में नमी अत्यधिक (${currentMoisture}%) है। जड़ों के सूक्ष्म वायु छिद्र पानी में डूब चुके हैं — खेत से अतिरिक्त पानी निकालने की व्यवस्था करें।` : `Halt all irrigation pumps immediately. Soil moisture is saturated at ${currentMoisture}%. Capillary air pores are drowned — open drainage channels to prevent root rot.`)
                     : isCritical ? (lang === 'hi' ? `आज ही ट्यूबवेल चलाएं और लगभग ${pumpHours} घंटे पानी लगाएं। पानी सुबह 5:30 से 7:30 बजे के बीच दें।` : `Turn on pump today and irrigate for ~${pumpHours} hours. Water during morning hours 5:30 - 7:30 AM.`)
                     : isSooner ? (lang === 'hi' ? `अगले 24 से 36 घंटों में लगभग ${pumpHours} घंटे सिंचाई की तैयारी रखें। वर्तमान अवस्था: ${getStageName(data?.currentStage)}।` : `Prepare to irrigate for ~${pumpHours} hours in next 24-36h. Stage: ${getStageName(data?.currentStage)}.`)
                     : isRain ? (lang === 'hi' ? `आगामी 24 घंटे में बारिश होने से खेत में प्राकृतिक पानी आ जाएगा। मोटर बंद रखें।` : `Rain forecasted. Keep pump motors off to avoid waterlogging and power waste.`)
@@ -1654,6 +1668,7 @@ export default function CropScheduleAlerts() {
                 <li>
                   <strong>{lang === 'hi' ? 'सावधानी:' : 'Field Precaution:'}</strong>{' '}
                   {isTimelineOnly ? (lang === 'hi' ? 'लाइव नमी अलर्ट व स्वचालित पंप सुरक्षा के लिए ऊपर दिए बटन से इस खेत को एक Arduino डिवाइस असाइन करें।' : 'Assign an Arduino device to this farm if live soil sensor alerts and automated pump control are desired.')
+                    : isHypoxia ? (lang === 'hi' ? 'निचले खेत से खड़े पानी को नाली काटकर बाहर निकालें। जलभराव में खाद न डालें ताकि वह बहकर नष्ट न हो।' : 'Clear surface drain trenches immediately. Do not apply fertilizer while field is waterlogged to prevent leaching.')
                     : isRain ? (lang === 'hi' ? 'खेत की जल निकासी नालियों को खुला रखें ताकि पानी खड़ा न रहे।' : 'Clear drainage channels so water drains smoothly.')
                     : (lang === 'hi' ? 'दोपहर की तेज धूप में पानी न लगाएं, तेज धूप में पानी देने से जड़ें झुलस सकती हैं।' : 'Avoid watering during hot afternoon sun to prevent root thermal shock.')}
                 </li>

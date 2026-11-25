@@ -729,9 +729,9 @@ async function evaluateCropAlerts({ plotId = 'PLOT_001', currentMoisture = null,
         notificationMessage = `[पूर्व सूचना] खेत ${plotId} पर नमी ${currentMoisture}% है। अगले 24-36 घंटों में पानी की योजना बनाएं।`;
       }
     }
-  } else if (currentMoisture >= 80 && notif.hypoxiaWarning) {
+  } else if (currentMoisture >= 65) {
     alertLevel = 'HYPOXIA_WARNING';
-    urgency = 'HIGH';
+    urgency = 'CRITICAL';
     alertTitleEn = 'WATERLOGGING & ROOT HYPOXIA DANGER';
     alertTitleHi = 'अत्यधिक जलभराव एवं जड़ सड़न (ऑक्सीजन ह्रास) का गंभीर खतरा';
     alertDescriptionEn = `Soil moisture is persistently saturated at ${currentMoisture}%. Capillary air pores are drowned, inviting Pythium damping-off root rot.`;
