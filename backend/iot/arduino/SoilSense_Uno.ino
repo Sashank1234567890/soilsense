@@ -10,15 +10,15 @@
  *    - AOUT   -> Arduino Analog Pin A0
  * 
  * 2. TEMPERATURE SENSOR (DS18B20 Waterproof Stainless Steel Probe):
- *    - RED wire    (VCC)  -> Arduino 5V
+ *    - RED wire    (VCC)  -> Arduino 3.3V (or 5V)
  *    - BLACK wire  (GND)  -> Arduino GND
  *    - YELLOW wire (DATA) -> Arduino Digital Pin 2
- *    - 4.7kΩ Resistor     -> Between YELLOW (Pin 2) and RED (5V)
+ *    - 4.7kΩ Resistor     -> Between YELLOW (Pin 2) and RED (3.3V)
  * 
  * 3. DUAL LED STATUS INDICATORS:
- *    - RED LED   (+) -> 220Ω Resistor -> Arduino Digital Pin 7 (High Moisture Alert > 65%)
+ *    - RED LED   (+) -> 220Ω Resistor -> Arduino Digital Pin 7 (Alert: Moisture <= 25% or >= 65%)
  *    - RED LED   (-) -> Arduino GND
- *    - GREEN LED (+) -> 220Ω Resistor -> Arduino Digital Pin 8 (Optimal Moisture <= 65%)
+ *    - GREEN LED (+) -> 220Ω Resistor -> Arduino Digital Pin 8 (Optimal: 25% < Moisture < 65%)
  *    - GREEN LED (-) -> Arduino GND
  * ============================================================================
  */
@@ -77,7 +77,7 @@ void setup() {
   int detectedCount = sensors.getDeviceCount();
   Serial.println(F("{\"system\":\"SoilSense Uno\",\"status\":\"BOOT_OK\"}"));
   if (detectedCount == 0) {
-    Serial.println(F("{\"warning\":\"DS18B20_NOT_FOUND\",\"action\":\"Check Pin 2 and 4.7k resistor between Pin 2 & 5V\"}"));
+    Serial.println(F("{\"warning\":\"DS18B20_NOT_FOUND\",\"action\":\"Check Pin 2 and 4.7k resistor between Pin 2 & 3.3V\"}"));
   }
 }
 
