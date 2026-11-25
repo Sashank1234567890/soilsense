@@ -551,7 +551,7 @@ export default function CropScheduleAlerts() {
   const sched = data?.schedule || {};
   const hasLiveDevice = data?.hasLiveDevice !== false && assignedDeviceId !== 'NONE';
   const isHypoxia = hasLiveDevice && (alertData?.alertLevel === 'HYPOXIA_WARNING' || alertData?.alertLevel === 'WATERLOGGING_ALERT' || currentMoisture >= 65);
-  const isCritical = hasLiveDevice && alertData?.alertLevel === 'CRITICAL_HIGH_RISK';
+  const isCritical = hasLiveDevice && (alertData?.alertLevel === 'CRITICAL_HIGH_RISK' || currentMoisture <= 25);
   const isSooner = hasLiveDevice && alertData?.alertLevel === 'SOONER_NOTICE';
   const isRain = hasLiveDevice && alertData?.alertLevel === 'RAIN_SUPPRESSED';
   const isHarvest = alertData?.alertLevel === 'HARVEST_ALERT';

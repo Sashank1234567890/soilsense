@@ -463,37 +463,43 @@ export default function SmartIrrigation() {
               </span>
             </div>
 
-            {latestHardwareReading && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                <span style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '3px 10px',
-                  borderRadius: '12px',
-                  fontSize: '11px',
-                  fontWeight: '700',
-                  backgroundColor: ((latestHardwareReading.moisture || currentMoisture) >= 65) ? '#fee2e2' : '#dcfce7',
-                  color: ((latestHardwareReading.moisture || currentMoisture) >= 65) ? '#b91c1c' : '#15803d',
-                  border: `1px solid ${((latestHardwareReading.moisture || currentMoisture) >= 65) ? '#fca5a5' : '#86efac'}`
-                }}>
+            {latestHardwareReading && (() => {
+              const m = latestHardwareReading.moisture ?? currentMoisture;
+              const isCrit = (m >= 65 || m <= 25);
+              return (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <span style={{
-                    width: '8px',
-                    height: '8px',
-                    borderRadius: '50%',
-                    backgroundColor: ((latestHardwareReading.moisture || currentMoisture) >= 65) ? '#ef4444' : '#22c55e',
-                    boxShadow: `0 0 6px ${((latestHardwareReading.moisture || currentMoisture) >= 65) ? '#ef4444' : '#22c55e'}`
-                  }} />
-                  {((latestHardwareReading.moisture || currentMoisture) >= 65)
-                    ? (lang === 'hi' ? 'Arduino Pin 7 🔴 लाल LED ऑन (>65% चेतावनी)' : 'Arduino Pin 7 🔴 RED LED ON (>65% Alert)')
-                    : (lang === 'hi' ? 'Arduino Pin 8 🟢 हरी LED ऑन (नमी सुरक्षित)' : 'Arduino Pin 8 🟢 GREEN LED ON (Optimal)')}
-                </span>
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '3px 10px',
+                    borderRadius: '12px',
+                    fontSize: '11px',
+                    fontWeight: '700',
+                    backgroundColor: isCrit ? '#fee2e2' : '#dcfce7',
+                    color: isCrit ? '#b91c1c' : '#15803d',
+                    border: `1px solid ${isCrit ? '#fca5a5' : '#86efac'}`
+                  }}>
+                    <span style={{
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      backgroundColor: isCrit ? '#ef4444' : '#22c55e',
+                      boxShadow: `0 0 6px ${isCrit ? '#ef4444' : '#22c55e'}`
+                    }} />
+                    {isCrit
+                      ? (m <= 25
+                          ? (lang === 'hi' ? 'Arduino Pin 7 🔴 लाल LED ऑन (सूखा <=25%)' : 'Arduino Pin 7 🔴 RED LED ON (Drought <=25%)')
+                          : (lang === 'hi' ? 'Arduino Pin 7 🔴 लाल LED ऑन (>65% जलभराव)' : 'Arduino Pin 7 🔴 RED LED ON (>65% Waterlogging)'))
+                      : (lang === 'hi' ? 'Arduino Pin 8 🟢 हरी LED ऑन (नमी सुरक्षित)' : 'Arduino Pin 8 🟢 GREEN LED ON (Optimal)')}
+                  </span>
 
-                <span style={{ color: '#047857', fontWeight: '500' }}>
-                  {lang === 'hi' ? 'अंतिम अपडेट: अभी-अभी' : `Last update: ${new Date(latestHardwareReading.timestamp).toLocaleTimeString()}`}
-                </span>
-              </div>
-            )}
+                  <span style={{ color: '#047857', fontWeight: '500' }}>
+                    {lang === 'hi' ? 'अंतिम अपडेट: अभी-अभी' : `Last update: ${new Date(latestHardwareReading.timestamp).toLocaleTimeString()}`}
+                  </span>
+                </div>
+              );
+            })()}
           </div>
         )}
 

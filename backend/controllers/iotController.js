@@ -52,8 +52,9 @@ async function getLatestReadingByDevice(req, res) {
     const readingObj = reading.toObject ? reading.toObject() : { ...reading };
     readingObj.moisture = readingObj.moisturePercentage !== undefined ? readingObj.moisturePercentage : readingObj.moisture;
     readingObj.rawADC = readingObj.rawValue !== undefined ? readingObj.rawValue : readingObj.rawADC;
-    readingObj.ledStatus = readingObj.ledStatus || (readingObj.moisture >= 65 ? 'RED_ALERT' : 'GREEN_OPTIMAL');
-    readingObj.ledColor = (readingObj.ledStatus === 'RED_ALERT' || readingObj.moisture >= 65) ? 'red' : 'green';
+    const isCritical = (readingObj.moisture >= 65 || readingObj.moisture <= 25);
+    readingObj.ledStatus = readingObj.ledStatus || (isCritical ? 'RED_ALERT' : 'GREEN_OPTIMAL');
+    readingObj.ledColor = (readingObj.ledStatus === 'RED_ALERT' || isCritical) ? 'red' : 'green';
 
     return res.json({ success: true, data: readingObj });
   } catch (err) {
@@ -147,7 +148,7 @@ async function getIoTSystemStatus(req, res) {
     const latestAnyReading = await SensorReading.findOne({}).sort({ timestamp: -1 });
 
     if (recentHardwareReading) {
-      const isMoistureHigh = (recentHardwareReading.moisturePercentage >= 65);
+      const isMoistureCritical = (recentHardwareReading.moisturePercentage >= 65 || recentHardwareReading.moisturePercentage <= 25);
       return res.json({
         success: true,
         connected: true,
@@ -157,8 +158,8 @@ async function getIoTSystemStatus(req, res) {
         lastReadingTime: recentHardwareReading.timestamp,
         moisture: recentHardwareReading.moisturePercentage,
         temperature: recentHardwareReading.temperature,
-        ledStatus: isMoistureHigh ? 'RED_ALERT' : 'GREEN_OPTIMAL',
-        ledColor: isMoistureHigh ? 'red' : 'green'
+        ledStatus: isMoistureCritical ? 'RED_ALERT' : 'GREEN_OPTIMAL',
+        ledColor: isMoistureCritical ? 'red' : 'green'
       });
     }
 

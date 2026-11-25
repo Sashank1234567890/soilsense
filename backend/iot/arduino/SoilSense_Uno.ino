@@ -35,7 +35,8 @@ const int RED_LED_PIN        = 7;  // 🔴 लाल अलर्ट LED (High M
 const int GREEN_LED_PIN      = 8;  // 🟢 हरी सामान्य LED (Optimal Moisture <= 65%)   -> Digital Pin 8
 
 // --- THRESHOLDS ---
-const float HIGH_MOISTURE_THRESHOLD = 65.0; // Moisture threshold percentage for Red LED
+const float HIGH_MOISTURE_THRESHOLD = 65.0; // Too wet / waterlogging alert threshold (Red LED ON)
+const float LOW_MOISTURE_THRESHOLD  = 25.0; // Too dry / critical drought alert threshold (Red LED ON)
 const float HIGH_TEMP_THRESHOLD     = 40.0; // Extreme Heat alert (°C)
 const float LOW_TEMP_THRESHOLD      = 5.0;  // Frost / Freezing alert (°C)
 
@@ -122,12 +123,14 @@ void loop() {
     bool hasValidTemp = (tempCelsius > -50.0 && tempCelsius < 125.0 && tempCelsius != 85.0);
 
     // 3. LED Logic:
-    // If moisture is high (> 65%), or temperature is critical (> 40°C or < 5°C), Red LED ON (Alert)
-    // If moisture and temperature are normal, Green LED ON (Safe/Optimal)
-    bool isMoistureHigh = (moisturePct >= HIGH_MOISTURE_THRESHOLD);
-    bool isTempCritical = hasValidTemp && (tempCelsius >= HIGH_TEMP_THRESHOLD || tempCelsius <= LOW_TEMP_THRESHOLD);
+    // If moisture is Too High (> 65%) OR Too Low (<= 25%), or temp is critical (> 40°C or < 5°C): RED LED ON (Alert)
+    // If moisture is normal (between 25% and 65%): GREEN LED ON (Optimal)
+    bool isMoistureTooHigh = (moisturePct >= HIGH_MOISTURE_THRESHOLD);
+    bool isMoistureTooLow  = (moisturePct <= LOW_MOISTURE_THRESHOLD);
+    bool isMoistureDanger  = (isMoistureTooHigh || isMoistureTooLow);
+    bool isTempCritical    = hasValidTemp && (tempCelsius >= HIGH_TEMP_THRESHOLD || tempCelsius <= LOW_TEMP_THRESHOLD);
 
-    if (isMoistureHigh || isTempCritical) {
+    if (isMoistureDanger || isTempCritical) {
       digitalWrite(RED_LED_PIN, HIGH);
       digitalWrite(GREEN_LED_PIN, LOW);
     } else {
@@ -158,7 +161,7 @@ void loop() {
     }
 
     Serial.print(F(",\"ledStatus\":\""));
-    Serial.print((isMoistureHigh || isTempCritical) ? F("RED_ALERT") : F("GREEN_OPTIMAL"));
+    Serial.print((isMoistureDanger || isTempCritical) ? F("RED_ALERT") : F("GREEN_OPTIMAL"));
     Serial.print(F("\",\"source\":\"hardware\",\"ingestionId\":\"DEV_"));
     Serial.print(currentTime);
     Serial.println(F("\"}"));

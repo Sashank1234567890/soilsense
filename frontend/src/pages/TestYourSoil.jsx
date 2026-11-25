@@ -204,7 +204,8 @@ export default function TestYourSoil() {
         const mVal = reading.moisturePercentage !== undefined ? reading.moisturePercentage : reading.moisture;
         const tVal = (reading.temperature !== null && reading.temperature !== undefined && !isNaN(reading.temperature)) ? reading.temperature : 25.7;
         const rawVal = reading.rawValue !== undefined ? reading.rawValue : reading.rawADC;
-        const led = reading.ledStatus || (mVal >= 65 ? 'RED_ALERT' : 'GREEN_OPTIMAL');
+        const isCriticalMoisture = (mVal >= 65 || mVal <= 25);
+        const led = reading.ledStatus || (isCriticalMoisture ? 'RED_ALERT' : 'GREEN_OPTIMAL');
 
         if (mVal !== undefined && !isNaN(mVal)) {
           setSensorValues(prev => ({
@@ -249,7 +250,8 @@ export default function TestYourSoil() {
           if (res.data?.ledStatus) {
             setArduinoLedState(res.data.ledStatus);
           } else if (res.data?.moisture !== undefined) {
-            setArduinoLedState(res.data.moisture >= 65 ? 'RED_ALERT' : 'GREEN_OPTIMAL');
+            const m = res.data.moisture;
+            setArduinoLedState((m >= 65 || m <= 25) ? 'RED_ALERT' : 'GREEN_OPTIMAL');
           }
           setDeviceStatus(lang === 'hi'
             ? 'लाइव कनेक्टेड (USB टेलीमेट्री सक्रिय • 15s ऑटो-रीडिंग ऑन)'
@@ -779,11 +781,13 @@ export default function TestYourSoil() {
 
               {/* Card 2: Arduino Physical Red / Green LED State Indicator */}
               {(() => {
-                const isHigh = (sensorValues.moisture >= 65) || (arduinoLedState === 'RED_ALERT');
+                const isTooHigh = sensorValues.moisture >= 65;
+                const isTooLow = sensorValues.moisture <= 25;
+                const isDanger = isTooHigh || isTooLow || (arduinoLedState === 'RED_ALERT');
                 return (
                   <div style={{
-                    backgroundColor: isHigh ? '#fef2f2' : '#f0fdf4',
-                    border: `1.5px solid ${isHigh ? '#fca5a5' : '#86efac'}`,
+                    backgroundColor: isDanger ? '#fef2f2' : '#f0fdf4',
+                    border: `1.5px solid ${isDanger ? '#fca5a5' : '#86efac'}`,
                     borderRadius: '10px',
                     padding: '12px 16px',
                     display: 'flex',
@@ -796,40 +800,46 @@ export default function TestYourSoil() {
                         width: '38px',
                         height: '38px',
                         borderRadius: '50%',
-                        backgroundColor: isHigh ? '#fee2e2' : '#dcfce7',
+                        backgroundColor: isDanger ? '#fee2e2' : '#dcfce7',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        boxShadow: isHigh ? '0 0 12px rgba(239, 68, 68, 0.45)' : '0 0 12px rgba(34, 197, 94, 0.45)',
+                        boxShadow: isDanger ? '0 0 12px rgba(239, 68, 68, 0.45)' : '0 0 12px rgba(34, 197, 94, 0.45)',
                         flexShrink: 0
                       }}>
                         <span style={{
                           width: '14px',
                           height: '14px',
                           borderRadius: '50%',
-                          backgroundColor: isHigh ? '#ef4444' : '#22c55e'
+                          backgroundColor: isDanger ? '#ef4444' : '#22c55e'
                         }} />
                       </div>
                       <div>
-                        <div style={{ fontSize: '13px', fontWeight: '800', color: isHigh ? '#b91c1c' : '#166534' }}>
-                          {isHigh
-                            ? (lang === 'hi' ? '🔴 Arduino पिन 7: लाल LED ऑन' : '🔴 Arduino Pin 7: RED LED ON')
-                            : (lang === 'hi' ? '🟢 Arduino पिन 8: हरी LED ऑन' : '🟢 Arduino Pin 8: GREEN LED ON')}
+                        <div style={{ fontSize: '13px', fontWeight: '800', color: isDanger ? '#b91c1c' : '#166534' }}>
+                          {isDanger
+                            ? (isTooLow
+                                ? (lang === 'hi' ? '🔴 Arduino पिन 7: लाल LED ऑन (अति-सूखा चेतावनी)' : '🔴 Arduino Pin 7: RED LED ON (Critical Drought)')
+                                : (lang === 'hi' ? '🔴 Arduino पिन 7: लाल LED ऑन (जलभराव चेतावनी)' : '🔴 Arduino Pin 7: RED LED ON (Waterlogging Alert)'))
+                            : (lang === 'hi' ? '🟢 Arduino पिन 8: हरी LED ऑन (नमी सामान्य)' : '🟢 Arduino Pin 8: GREEN LED ON (Optimal)')}
                         </div>
-                        <div style={{ fontSize: '11px', color: isHigh ? '#991b1b' : '#15803d', marginTop: '2px' }}>
-                          {isHigh
-                            ? (lang === 'hi'
-                                ? `अत्यधिक नमी चेतावनी (${sensorValues.moisture}% >= 65%) • पिन 8 हरी LED बंद`
-                                : `High Moisture Alert (${sensorValues.moisture}% >= 65%) • Pin 8 Green LED OFF`)
+                        <div style={{ fontSize: '11px', color: isDanger ? '#991b1b' : '#15803d', marginTop: '2px' }}>
+                          {isDanger
+                            ? (isTooLow
+                                ? (lang === 'hi'
+                                    ? `गंभीर कम नमी (${sensorValues.moisture}% <= 25%) • तुरंत सिंचाई करें • पिन 8 हरी LED बंद`
+                                    : `Critically Low Moisture (${sensorValues.moisture}% <= 25%) • Irrigate Soon • Pin 8 Green LED OFF`)
+                                : (lang === 'hi'
+                                    ? `अत्यधिक नमी चेतावनी (${sensorValues.moisture}% >= 65%) • पिन 8 हरी LED बंद`
+                                    : `High Moisture Alert (${sensorValues.moisture}% >= 65%) • Pin 8 Green LED OFF`))
                             : (lang === 'hi'
-                                ? `नमी सामान्य एवं सुरक्षित (${sensorValues.moisture}% < 65%) • पिन 7 लाल LED बंद`
-                                : `Moisture Safe & Optimal (${sensorValues.moisture}% < 65%) • Pin 7 Red LED OFF`)}
+                                ? `नमी सामान्य एवं सुरक्षित (${sensorValues.moisture}% स्तर) • पिन 7 लाल LED बंद`
+                                : `Moisture Safe & Optimal (${sensorValues.moisture}%) • Pin 7 Red LED OFF`)}
                         </div>
                       </div>
                     </div>
 
                     <span style={{
-                      backgroundColor: isHigh ? '#ef4444' : '#16a34a',
+                      backgroundColor: isDanger ? '#ef4444' : '#16a34a',
                       color: '#ffffff',
                       fontSize: '11px',
                       fontWeight: '800',
@@ -838,8 +848,10 @@ export default function TestYourSoil() {
                       whiteSpace: 'nowrap',
                       flexShrink: 0
                     }}>
-                      {isHigh
-                        ? (lang === 'hi' ? 'जलभराव चेतावनी' : 'High Moisture')
+                      {isDanger
+                        ? (isTooLow
+                            ? (lang === 'hi' ? 'अति-सूखा अलर्ट' : 'Critical Low')
+                            : (lang === 'hi' ? 'जलभराव अलर्ट' : 'High Moisture'))
                         : (lang === 'hi' ? 'नमी सुरक्षित' : 'Moisture Safe')}
                     </span>
                   </div>
