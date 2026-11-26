@@ -3,9 +3,6 @@ const Crop = require('../models/Crop');
 const SoilImprovementPlan = require('../models/SoilImprovementPlan');
 const { evaluateCropAgainstSoil } = require('./cropRecommendationService');
 
-/**
- * Diagnostic logic for soil parameter remedies and practicality
- */
 function analyzeParameterIssue(paramName, currentVal, reqRange, isDeficient) {
   let severity = 'Moderate';
   let suggestedAmendments = [];
@@ -106,9 +103,6 @@ function analyzeParameterIssue(paramName, currentVal, reqRange, isDeficient) {
   };
 }
 
-/**
- * Service: Generates a comprehensive, actionable Soil Improvement Plan
- */
 async function generateSoilImprovementPlan(soilTestId, targetCropId) {
   const soilTest = await SoilTest.findById(soilTestId);
   if (!soilTest) {
@@ -142,7 +136,7 @@ async function generateSoilImprovementPlan(soilTestId, targetCropId) {
       }
     });
   } else {
-    // General soil baseline evaluation
+
     if (values.pH !== undefined && values.pH !== null) {
       if (values.pH < 6.0) deficiencies.push(analyzeParameterIssue('pH', values.pH, '6.5 - 7.5', true));
       else if (values.pH > 8.2) excesses.push(analyzeParameterIssue('pH', values.pH, '6.5 - 7.5', false));
@@ -162,7 +156,6 @@ async function generateSoilImprovementPlan(soilTestId, targetCropId) {
     }
   }
 
-  // Find suitable Alternative Crops
   const allCrops = await Crop.find({});
   const evaluatedAlternatives = [];
   for (const c of allCrops) {
@@ -180,10 +173,8 @@ async function generateSoilImprovementPlan(soilTestId, targetCropId) {
     }
   }
 
-  // Sort alternatives by suitability score descending
   evaluatedAlternatives.sort((a, b) => (b.suitabilityScore || 0) - (a.suitabilityScore || 0));
 
-  // Practicality Explanation
   let practicalityExplanation = '';
   if (isPractical) {
     practicalityExplanation = deficiencies.length === 0 && excesses.length === 0

@@ -9,7 +9,7 @@ const MANDI_BENCHMARKS = [
 ];
 
 async function calculateMarketROI({ plotId, cropName }) {
-  const match = MANDI_BENCHMARKS.find(b => b.cropName.toLowerCase() === (cropName || 'Wheat').toLowerCase()) 
+  const match = MANDI_BENCHMARKS.find(b => b.cropName.toLowerCase() === (cropName || 'Wheat').toLowerCase())
     || MANDI_BENCHMARKS[0];
 
   const grossRevenue = match.yieldQuintal * match.mandiPrice;

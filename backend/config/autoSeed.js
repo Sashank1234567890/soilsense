@@ -9,7 +9,7 @@ const { indianCrops } = require('../scripts/seedCrops');
 
 async function autoSeedDatabase() {
   try {
-    // 1. Verify and auto-load 16 Indian Soil Series
+
     const soilCount = await SoilType.countDocuments();
     if (soilCount < 16) {
       console.log(`[AutoSeed] Current soil types count is ${soilCount}. Seeding full 16 Indian soil types...`);
@@ -23,7 +23,6 @@ async function autoSeedDatabase() {
       console.log('[AutoSeed Success] All 16 Indian Soil Series verified & loaded.');
     }
 
-    // 2. Verify and auto-load 30 Indian Crops
     const cropCount = await Crop.countDocuments();
     if (cropCount < 30) {
       console.log(`[AutoSeed] Current crops count is ${cropCount}. Seeding full 30 Indian crops...`);
@@ -37,7 +36,6 @@ async function autoSeedDatabase() {
       console.log('[AutoSeed Success] All 30 Indian Crops verified & loaded.');
     }
 
-    // 3. Verify and auto-load Official Demo Users
     const demoConfigs = [
       {
         name: 'Ramesh Kumar',
@@ -88,7 +86,6 @@ async function autoSeedDatabase() {
       if (d.role === 'student') studentUser = u;
     }
 
-    // 4. Ensure Device 001 exists
     const existingDevice = await Device.findOne({ deviceId: 'DEVICE_001' });
     if (!existingDevice) {
       await Device.create({
@@ -110,11 +107,9 @@ async function autoSeedDatabase() {
       console.log('[AutoSeed] Created default DEVICE_001');
     }
 
-    // 5. Ensure Distinct Dedicated Plots for Each Demo Role
     const CropSchedule = require('../models/CropSchedule');
     const { CROP_METADATA, checkCropSeasonSuitability } = require('../services/cropScheduleService');
 
-    // 5a. Farmer Plot (PLOT_001 - Wheat)
     if (farmerUser) {
       let plot001 = await Plot.findOne({ plotId: 'PLOT_001' });
       if (!plot001) {
@@ -161,7 +156,6 @@ async function autoSeedDatabase() {
       }
     }
 
-    // 5b. Agronomist Plot (PLOT_AGRO_001 - Mustard)
     if (agronomistUser) {
       let plotAgro = await Plot.findOne({ plotId: 'PLOT_AGRO_001' });
       if (!plotAgro) {
@@ -205,7 +199,6 @@ async function autoSeedDatabase() {
       }
     }
 
-    // 5c. Student Plot (PLOT_STU_001 - Maize)
     if (studentUser) {
       let plotStu = await Plot.findOne({ plotId: 'PLOT_STU_001' });
       if (!plotStu) {
@@ -249,7 +242,6 @@ async function autoSeedDatabase() {
       }
     }
 
-    // 6. Ensure baseline demo test exists for demo farmer
     if (farmerUser) {
       const existingDemoTest = await SoilTest.findOne({ testId: 'TEST_INIT_DEMO_001' });
       if (!existingDemoTest) {

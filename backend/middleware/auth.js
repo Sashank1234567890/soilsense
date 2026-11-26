@@ -15,7 +15,7 @@ async function protect(req, res, next) {
       }
       return next();
     } catch (err) {
-      // If token expired or invalid, treat as guest rather than aborting request
+
       req.user = null;
       return next();
     }

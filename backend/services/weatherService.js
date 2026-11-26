@@ -38,13 +38,12 @@ async function fetchLiveWeather({ lat = 28.6139, lon = 77.2090, district = 'Delh
   const latitude = +lat || 28.6139;
   const longitude = +lon || 77.2090;
 
-  // Check if we have a fresh snapshot (< 15 minutes old) for the EXACT coordinates
   if (plotId && !forceRefresh) {
     const cached = await WeatherSnapshot.findOne({ plotId }).sort({ recordedAt: -1 }).lean();
     if (cached && (Date.now() - new Date(cached.recordedAt).getTime()) < 15 * 60 * 1000) {
       const latDiff = Math.abs((cached.location?.lat ?? 0) - latitude);
       const lonDiff = Math.abs((cached.location?.lon ?? 0) - longitude);
-      // Only reuse cache if coordinates match (within ~2km)
+
       if (latDiff < 0.02 && lonDiff < 0.02) {
         return cached;
       }
@@ -53,7 +52,7 @@ async function fetchLiveWeather({ lat = 28.6139, lon = 77.2090, district = 'Delh
 
   return new Promise((resolve) => {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=precipitation_sum,precipitation_probability_max,et0_fao_evapotranspiration,temperature_2m_max,temperature_2m_min&current=temperature_2m,relative_humidity_2m,precipitation,weather_code&timezone=Asia%2FKolkata`;
-    
+
     const req = https.get(url, { headers: { 'User-Agent': 'SoilSense-PrecisionAgri/1.0' } }, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);

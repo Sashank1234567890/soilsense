@@ -23,7 +23,6 @@ async function runBenchmark() {
     };
     const sortFilter = { timestamp: -1 };
 
-    // 1. Run WITH compound index { deviceId: 1, timestamp: -1 }
     console.log('\n--- 1. EXPLAIN WITH COMPOUND INDEX (deviceId: 1, timestamp: -1) ---');
     const explainWithIndex = await coll.find(queryFilter).sort(sortFilter).limit(50).explain('executionStats');
     const statsWithIndex = {
@@ -36,7 +35,6 @@ async function runBenchmark() {
     };
     console.log('Stats With Index:', statsWithIndex);
 
-    // 2. Temporarily drop compound index to measure unindexed COLLSCAN
     console.log('\n--- 2. EXPLAIN WITHOUT INDEX (COLLSCAN Baseline) ---');
     let indexDropped = false;
     try {
@@ -58,13 +56,11 @@ async function runBenchmark() {
     };
     console.log('Stats Without Index:', statsWithoutIndex);
 
-    // Re-create index
     if (indexDropped) {
       await coll.createIndex({ deviceId: 1, timestamp: -1 });
       console.log('Restored compound index { deviceId: 1, timestamp: -1 }.');
     }
 
-    // 3. Write actual measured output to BENCHMARK_RESULTS.md
     const benchmarkDoc = `# SoilSense: MongoDB Query Optimization & Benchmark Report
 **NIT Delhi CSE 3rd-Semester DBMS Semester Project**
 *Measured on Local MongoDB 7.0 (ReplicaSet rs0) with ${totalDocs} Documents*

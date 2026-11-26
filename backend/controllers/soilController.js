@@ -8,9 +8,6 @@ const { analyzeSoilCondition } = require('../services/soilAnalysisService');
 const { classifySoil } = require('../services/soilClassificationService');
 const { evaluateCropAgainstSoil } = require('../services/cropRecommendationService');
 
-/**
- * Search soil types with partial and case-insensitive matching
- */
 async function searchSoilTypes(req, res) {
   try {
     const q = req.query.q ? req.query.q.trim() : '';
@@ -44,9 +41,6 @@ async function searchSoilTypes(req, res) {
   }
 }
 
-/**
- * Get all soil types
- */
 async function getAllSoilTypes(req, res) {
   try {
     const soils = await SoilType.find({}).sort({ name: 1 });
@@ -56,9 +50,6 @@ async function getAllSoilTypes(req, res) {
   }
 }
 
-/**
- * Get soil type by ID
- */
 async function getSoilTypeById(req, res) {
   try {
     const soil = await SoilType.findById(req.params.id);
@@ -66,7 +57,6 @@ async function getSoilTypeById(req, res) {
       return res.status(404).json({ success: false, message: 'Soil type not found' });
     }
 
-    // Group suitable crops into tiers for Module 1 display
     const highlySuitable = [];
     const suitable = [];
     const suitableWithImprovements = [];
@@ -94,9 +84,6 @@ async function getSoilTypeById(req, res) {
   }
 }
 
-/**
- * Get registered soil profiles
- */
 async function getAllSoilProfiles(req, res) {
   try {
     const profiles = await SoilProfile.find({}).populate('soilTypeId').sort({ createdAt: -1 });
@@ -106,9 +93,6 @@ async function getAllSoilProfiles(req, res) {
   }
 }
 
-/**
- * Create a new Soil Test (from simulation, hardware, manual lab, or existing profile)
- */
 async function createSoilTest(req, res) {
   try {
     const { error, value } = soilTestSchema.validate(req.body);
@@ -116,7 +100,6 @@ async function createSoilTest(req, res) {
       return res.status(400).json({ success: false, message: error.details[0].message });
     }
 
-    // If hardware mode requested but device is offline/standby, gracefully fallback to simulation/calibrated so project testing is allowed
     if (value.overallSource === 'hardware') {
       const sixtySecondsAgo = new Date(Date.now() - 60000);
       const recentHardwareReading = await SensorReading.findOne({
@@ -131,7 +114,6 @@ async function createSoilTest(req, res) {
     const testId = `TEST_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
     const { condition, dataCompleteness } = analyzeSoilCondition(value.values, value.parameterSources);
 
-    // If selectedCropId provided, lookup name
     let selectedCropName = '';
     if (value.selectedCropId) {
       const crop = await Crop.findById(value.selectedCropId);
@@ -170,9 +152,6 @@ async function createSoilTest(req, res) {
   }
 }
 
-/**
- * Get soil test by ID
- */
 async function getSoilTestById(req, res) {
   try {
     const test = await SoilTest.findById(req.params.id).populate('selectedCropId');
@@ -188,9 +167,6 @@ async function getSoilTestById(req, res) {
 const CropRecommendation = require('../models/CropRecommendation');
 const AnalysisReport = require('../models/AnalysisReport');
 
-/**
- * Get all soil tests (history) with full attached recommendation and report metadata
- */
 async function getAllSoilTests(req, res) {
   try {
     const { plotId, source, cropId, userId, limit = 50 } = req.query;
@@ -199,10 +175,6 @@ async function getAllSoilTests(req, res) {
     if (source) filter.overallSource = source;
     if (cropId) filter.selectedCropId = cropId;
 
-    // Strict user scoping:
-    // If user is authenticated, they ONLY see their own tests.
-    // New registered users will have 0 tests, keeping their soil history completely empty.
-    // The three demo guest accounts see only their respective demo tests.
     if (req.user) {
       filter.userId = req.user._id;
     } else if (userId) {
@@ -241,9 +213,6 @@ async function getAllSoilTests(req, res) {
   }
 }
 
-/**
- * Endpoint: Analyze soil condition
- */
 async function analyseSoil(req, res) {
   try {
     const { values, parameterSources } = req.body;
@@ -254,9 +223,6 @@ async function analyseSoil(req, res) {
   }
 }
 
-/**
- * Endpoint: Classify soil type with scientific honesty
- */
 async function classifySoilEndpoint(req, res) {
   try {
     const { values, parameterSources } = req.body;
@@ -267,9 +233,6 @@ async function classifySoilEndpoint(req, res) {
   }
 }
 
-/**
- * Compare 2 or more soil tests / profiles side by side
- */
 async function compareSoilProfiles(req, res) {
   try {
     const { testIds, profileIds } = req.body;
@@ -280,7 +243,7 @@ async function compareSoilProfiles(req, res) {
     } else if (profileIds && profileIds.length > 0) {
       profiles = await SoilProfile.find({ _id: { $in: profileIds } }).populate('soilTypeId').lean();
     } else {
-      // Default: fetch the 2 most recent tests for this user
+
       const defaultFilter = req.user ? { userId: req.user._id } : {};
       profiles = await SoilTest.find(defaultFilter).sort({ timestamp: -1 }).limit(2).populate('selectedCropId').lean();
     }
@@ -292,7 +255,6 @@ async function compareSoilProfiles(req, res) {
       });
     }
 
-    // Attach crop recommendations if available
     const ids = profiles.map(p => p._id);
     const recs = await CropRecommendation.find({ soilTestId: { $in: ids } }).lean();
     const recMap = {};
@@ -303,7 +265,6 @@ async function compareSoilProfiles(req, res) {
       recommendations: recMap[p._id.toString()]?.recommendations || []
     }));
 
-    // Parameters to compare
     const parameters = [
       { key: 'moisture', label: 'Moisture (%)', unit: '%' },
       { key: 'pH', label: 'Soil pH', unit: 'pH' },

@@ -1,8 +1,3 @@
-/**
- * SoilSense: Node.js USB Serial Bridge
- * Reads newline-delimited JSON from Arduino Uno and forwards to the Express Ingestion API.
- */
-
 const { EventEmitter } = require('events');
 const http = require('http');
 
@@ -21,9 +16,6 @@ class SoilSenseSerialBridge extends EventEmitter {
     this.buffer = '';
   }
 
-  /**
-   * Initializes connection (real hardware SerialPort or mocked stream)
-   */
   async start() {
     if (this.isMock) {
       console.log('[SerialBridge] Starting in MOCK SERIAL MODE.');
@@ -33,7 +25,7 @@ class SoilSenseSerialBridge extends EventEmitter {
     }
 
     try {
-      // Dynamically load serialport if installed
+
       let SerialPort;
       try {
         const spModule = require('serialport');
@@ -52,7 +44,7 @@ class SoilSenseSerialBridge extends EventEmitter {
       if (!process.env.SERIAL_PORT) {
         try {
           const ports = await SerialPort.list();
-          const detected = ports.find(p => 
+          const detected = ports.find(p =>
             (p.path && (p.path.includes('usbmodem') || p.path.includes('usbserial') || p.path.includes('wchusbserial') || p.path.startsWith('COM'))) ||
             (p.manufacturer && p.manufacturer.toLowerCase().includes('arduino')) ||
             (p.vendorId && (p.vendorId === '2341' || p.vendorId === '1a86'))
@@ -107,14 +99,10 @@ class SoilSenseSerialBridge extends EventEmitter {
     }
   }
 
-  /**
-   * Parses stream chunks delimited by newlines
-   */
   handleRawData(dataString) {
     this.buffer += dataString;
     const lines = this.buffer.split('\n');
 
-    // Keep unfinished line fragment in buffer
     this.buffer = lines.pop();
 
     for (const rawLine of lines) {
@@ -124,20 +112,15 @@ class SoilSenseSerialBridge extends EventEmitter {
     }
   }
 
-  /**
-   * Validates and forwards a single line of serial JSON
-   */
   processSerialLine(line) {
     try {
       const payload = JSON.parse(line);
 
-      // Validate required telemetry fields
       if (!payload.deviceId || !payload.plotId || payload.rawValue === undefined) {
         console.warn('[SerialBridge] Dropped malformed payload (missing required keys):', line);
         return;
       }
 
-      // Guarantee globally unique ingestionId with server millisecond timestamp
       payload.source = 'hardware';
       payload.ingestionId = `${payload.deviceId || 'DEVICE_001'}_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
 
@@ -153,16 +136,12 @@ class SoilSenseSerialBridge extends EventEmitter {
 
       this.emit('reading', payload);
 
-      // Forward to Express ingestion API
       this.forwardToApi(payload);
     } catch (parseError) {
       console.warn('[SerialBridge] Failed to parse JSON from serial line:', line, parseError.message);
     }
   }
 
-  /**
-   * HTTP POST to the unified Express Ingestion Endpoint
-   */
   forwardToApi(payload) {
     const postData = JSON.stringify(payload);
 
@@ -198,9 +177,6 @@ class SoilSenseSerialBridge extends EventEmitter {
     req.end();
   }
 
-  /**
-   * Reconnection handling with exponential backoff
-   */
   handleDisconnect() {
     this.isConnected = false;
     if (this.reconnectTimeout) clearTimeout(this.reconnectTimeout);
@@ -213,9 +189,6 @@ class SoilSenseSerialBridge extends EventEmitter {
     }
   }
 
-  /**
-   * Stop bridge
-   */
   stop() {
     if (this.reconnectTimeout) clearTimeout(this.reconnectTimeout);
     if (this.port && this.port.isOpen) {
@@ -225,11 +198,10 @@ class SoilSenseSerialBridge extends EventEmitter {
   }
 }
 
-// Standalone execution if invoked directly via CLI
 if (require.main === module) {
   const bridge = new SoilSenseSerialBridge();
   bridge.on('portError', (err) => {
-    // Graceful log, handled by auto-reconnect
+
   });
   bridge.on('connected', (info) => {
     console.log(`[SerialBridge] SUCCESS: Hardware bridge active on ${info.port}!`);

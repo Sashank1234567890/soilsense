@@ -45,7 +45,7 @@ export default function SmartIrrigation() {
   const [weather, setWeather] = useState(null);
   const [cropStage, setCropStage] = useState('VEGETATIVE');
   const [currentMoisture, setCurrentMoisture] = useState(34);
-  const [dataSource, setDataSource] = useState('live'); // 'live' or 'manual'
+  const [dataSource, setDataSource] = useState('live');
   const [latestHardwareReading, setLatestHardwareReading] = useState(null);
   const [hardwareDetected, setHardwareDetected] = useState(false);
 
@@ -156,7 +156,7 @@ export default function SmartIrrigation() {
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 16px' }}>
-      
+
       {allFarms.length > 0 && (
         <div style={{ marginBottom: '24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
@@ -563,7 +563,7 @@ export default function SmartIrrigation() {
 
       {advisory && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
-          
+
           <div style={{
             backgroundColor: '#ffffff',
             borderRadius: '12px',

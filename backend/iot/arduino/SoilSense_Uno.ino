@@ -1,78 +1,42 @@
-/**
- * ============================================================================
- * SoilSense-Pro: Complete IoT Telemetry Firmware
- * Target: Arduino Uno / Nano
- * 
- * ======================= EXACT ARDUINO PIN MAPPING ==========================
- * 1. SOIL MOISTURE SENSOR (Capacitive v1.2):
- *    - VCC    -> Arduino 5V (or 3.3V)
- *    - GND    -> Arduino GND
- *    - AOUT   -> Arduino Analog Pin A0
- * 
- * 2. TEMPERATURE SENSOR (DS18B20 Waterproof Stainless Steel Probe):
- *    - RED wire    (VCC)  -> Arduino 3.3V (or 5V)
- *    - BLACK wire  (GND)  -> Arduino GND
- *    - YELLOW wire (DATA) -> Arduino Digital Pin 2
- *    - 4.7kΩ Resistor     -> Between YELLOW (Pin 2) and RED (3.3V)
- * 
- * 3. DUAL LED STATUS INDICATORS:
- *    - RED LED   (+) -> 220Ω Resistor -> Arduino Digital Pin 7 (Alert: Moisture <= 25% or >= 65%)
- *    - RED LED   (-) -> Arduino GND
- *    - GREEN LED (+) -> 220Ω Resistor -> Arduino Digital Pin 8 (Optimal: 25% < Moisture < 65%)
- *    - GREEN LED (-) -> Arduino GND
- * ============================================================================
- */
-
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
-// ============================================================================
-// ALL ARDUINO PIN DEFINITIONS (सभी पिन यहाँ साफ़-साफ़ सेट हैं)
-// ============================================================================
-const int MOISTURE_PIN       = A0; // 💧 मिट्टी की नमी (Capacitive Moisture Sensor) -> Analog Pin A0
-const int TEMPERATURE_PIN    = 2;  // 🌡️ तापमान सेंसर (DS18B20 Temp Sensor Data)    -> Digital Pin 2
-const int RED_LED_PIN        = 7;  // 🔴 लाल अलर्ट LED (High Moisture Alert > 65%)   -> Digital Pin 7
-const int GREEN_LED_PIN      = 8;  // 🟢 हरी सामान्य LED (Optimal Moisture <= 65%)   -> Digital Pin 8
+const int MOISTURE_PIN       = A0;
+const int TEMPERATURE_PIN    = 2;
+const int RED_LED_PIN        = 7;
+const int GREEN_LED_PIN      = 8;
 
-// --- THRESHOLDS ---
-const float HIGH_MOISTURE_THRESHOLD = 65.0; // Too wet / waterlogging alert threshold (Red LED ON)
-const float LOW_MOISTURE_THRESHOLD  = 25.0; // Too dry / critical drought alert threshold (Red LED ON)
-const float HIGH_TEMP_THRESHOLD     = 40.0; // Extreme Heat alert (°C)
-const float LOW_TEMP_THRESHOLD      = 5.0;  // Frost / Freezing alert (°C)
+const float HIGH_MOISTURE_THRESHOLD = 65.0;
+const float LOW_MOISTURE_THRESHOLD  = 25.0;
+const float HIGH_TEMP_THRESHOLD     = 40.0;
+const float LOW_TEMP_THRESHOLD      = 5.0;
 
-// OneWire and DallasTemperature instances on TEMPERATURE_PIN (Pin 2)
 OneWire oneWire(TEMPERATURE_PIN);
 DallasTemperature sensors(&oneWire);
 
-// Moisture Calibration for 3.3V Power (Dry Air ~570, Submerged in Water ~240)
 const int DRY_ADC_VALUE = 570;
 const int WET_ADC_VALUE = 240;
 
-// Identifiers & Timing
 const char* DEVICE_ID = "DEVICE_001";
 const char* PLOT_ID   = "PLOT_001";
-const unsigned long INTERVAL_MS = 3000; // Telemetry transmission every 3 seconds
+const unsigned long INTERVAL_MS = 3000;
 
 unsigned long lastTransmissionTime = 0;
 
 void setup() {
   Serial.begin(9600);
 
-  // Configure Pin Modes
   pinMode(MOISTURE_PIN, INPUT);
   pinMode(RED_LED_PIN, OUTPUT);
   pinMode(GREEN_LED_PIN, OUTPUT);
   digitalWrite(RED_LED_PIN, LOW);
   digitalWrite(GREEN_LED_PIN, LOW);
 
-  // Enable internal pull-up on Pin 2 for Temperature Data Line
   pinMode(TEMPERATURE_PIN, INPUT_PULLUP);
 
-  // Initialize DS18B20 library
   sensors.begin();
   sensors.setWaitForConversion(true);
 
-  // Self-Test Diagnostic Print on Boot
   delay(500);
   int detectedCount = sensors.getDeviceCount();
   Serial.println(F("{\"system\":\"SoilSense Uno\",\"status\":\"BOOT_OK\"}"));
@@ -81,7 +45,6 @@ void setup() {
   }
 }
 
-// 10-sample moving average for moisture to eliminate analog noise
 int readSmoothedADC(int pin) {
   long sum = 0;
   for (int i = 0; i < 10; i++) {
@@ -91,7 +54,6 @@ int readSmoothedADC(int pin) {
   return (int)(sum / 10);
 }
 
-// Convert raw ADC (820 down to 350) into 0.0% to 100.0%
 float calculateMoisturePercentage(int raw) {
   if (raw >= DRY_ADC_VALUE) return 0.0;
   if (raw <= WET_ADC_VALUE) return 100.0;
@@ -101,11 +63,10 @@ float calculateMoisturePercentage(int raw) {
   return pct;
 }
 
-// Read DS18B20 temperature in Celsius (°C)
 float readTemperatureCelsius() {
   sensors.requestTemperatures();
-  float tempC = sensors.getTempCByIndex(0); // Fetches temperature in Celsius
-  return tempC; // Returns actual °C (e.g. 24.5 °C), or -127.0 °C if disconnected
+  float tempC = sensors.getTempCByIndex(0);
+  return tempC;
 }
 
 void loop() {
@@ -114,17 +75,12 @@ void loop() {
   if (currentTime - lastTransmissionTime >= INTERVAL_MS) {
     lastTransmissionTime = currentTime;
 
-    // 1. Read Soil Moisture (Analog Pin A0)
     int rawMoisture = readSmoothedADC(MOISTURE_PIN);
     float moisturePct = calculateMoisturePercentage(rawMoisture);
 
-    // 2. Read Soil Temperature in Celsius (Digital Pin 2)
     float tempCelsius = readTemperatureCelsius();
     bool hasValidTemp = (tempCelsius > -50.0 && tempCelsius < 125.0 && tempCelsius != 85.0);
 
-    // 3. LED Logic:
-    // If moisture is Too High (> 65%) OR Too Low (<= 25%), or temp is critical (> 40°C or < 5°C): RED LED ON (Alert)
-    // If moisture is normal (between 25% and 65%): GREEN LED ON (Optimal)
     bool isMoistureTooHigh = (moisturePct >= HIGH_MOISTURE_THRESHOLD);
     bool isMoistureTooLow  = (moisturePct <= LOW_MOISTURE_THRESHOLD);
     bool isMoistureDanger  = (isMoistureTooHigh || isMoistureTooLow);
@@ -138,7 +94,6 @@ void loop() {
       digitalWrite(GREEN_LED_PIN, HIGH);
     }
 
-    // 4. Construct and transmit strict JSON line over USB Serial
     Serial.print(F("{\"deviceId\":\""));
     Serial.print(DEVICE_ID);
     Serial.print(F("\",\"plotId\":\""));
@@ -148,7 +103,6 @@ void loop() {
     Serial.print(F(",\"moisturePercentage\":"));
     Serial.print(moisturePct, 1);
 
-    // Explicitly labeled Temperature in Celsius (°C)
     if (hasValidTemp) {
       Serial.print(F(",\"temperature\":"));
       Serial.print(tempCelsius, 1);

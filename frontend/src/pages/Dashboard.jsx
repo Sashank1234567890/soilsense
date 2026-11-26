@@ -130,7 +130,7 @@ export default function Dashboard() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-      
+
       <div className="grid-4">
         <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '16px', background: 'linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%)', border: '1px solid #bbf7d0' }}>
           <div style={{ backgroundColor: '#dcfce7', padding: '14px', borderRadius: '12px', color: '#15803d', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(22, 163, 74, 0.15)' }}>
@@ -256,7 +256,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid-2">
-        
+
         <div className="card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <div>

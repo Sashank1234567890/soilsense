@@ -46,7 +46,7 @@ export default function Login() {
       flexDirection: 'column',
       gap: '24px'
     }}>
-      
+
       <div style={{ textAlign: 'center' }}>
         <div style={{
           display: 'inline-flex',
@@ -97,7 +97,7 @@ export default function Login() {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              
+
               <div>
                 <strong style={{ color: '#166534', fontSize: '0.88rem' }}>Ramesh Kumar (Farmer)</strong>
                 <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>Ludhiana, Punjab • Plot 01</div>
@@ -120,7 +120,7 @@ export default function Login() {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              
+
               <div>
                 <strong style={{ color: '#9a3412', fontSize: '0.88rem' }}>Dr. Preeti Sharma (Agronomist)</strong>
                 <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>PAU Ludhiana • Research Station Block C</div>
@@ -143,7 +143,7 @@ export default function Login() {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              
+
               <div>
                 <strong style={{ color: '#1d4ed8', fontSize: '0.88rem' }}>Rahul Verma (NIT Delhi Student)</strong>
                 <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>3rd Sem CSE • DBMS Evaluator Zone</div>

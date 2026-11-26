@@ -4,9 +4,6 @@ const Alert = require('../models/Alert');
 const { sensorReadingSchema, deviceSchema } = require('../validators');
 const { ingestSensorReading } = require('../services/sensorService');
 
-/**
- * Unified Ingestion Endpoint (used by both Hardware Serial Bridge and Simulator)
- */
 async function ingestReading(req, res) {
   try {
     const { error, value } = sensorReadingSchema.validate(req.body);
@@ -36,9 +33,6 @@ async function ingestReading(req, res) {
   }
 }
 
-/**
- * Get latest reading for a device
- */
 async function getLatestReadingByDevice(req, res) {
   try {
     const { deviceId } = req.params;
@@ -62,9 +56,6 @@ async function getLatestReadingByDevice(req, res) {
   }
 }
 
-/**
- * Get recent readings for a device (for live graph)
- */
 async function getDeviceReadings(req, res) {
   try {
     const deviceId = req.params.id.toUpperCase();
@@ -78,16 +69,13 @@ async function getDeviceReadings(req, res) {
       success: true,
       deviceId,
       count: readings.length,
-      data: readings.reverse() // chronological order for charts
+      data: readings.reverse()
     });
   } catch (err) {
     return res.status(500).json({ success: false, error: err.message });
   }
 }
 
-/**
- * Get all devices
- */
 async function getAllDevices(req, res) {
   try {
     const devices = await Device.find({}).sort({ deviceId: 1 });
@@ -97,9 +85,6 @@ async function getAllDevices(req, res) {
   }
 }
 
-/**
- * Register or update device
- */
 async function createDevice(req, res) {
   try {
     const { error, value } = deviceSchema.validate(req.body);
@@ -119,9 +104,6 @@ async function createDevice(req, res) {
   }
 }
 
-/**
- * Get device by ID
- */
 async function getDeviceById(req, res) {
   try {
     const device = await Device.findOne({ deviceId: req.params.id.toUpperCase() });
@@ -134,9 +116,6 @@ async function getDeviceById(req, res) {
   }
 }
 
-/**
- * Get dynamic real-time IoT hardware connection status
- */
 async function getIoTSystemStatus(req, res) {
   try {
     const fifteenSecondsAgo = new Date(Date.now() - 15000);
@@ -177,13 +156,10 @@ async function getIoTSystemStatus(req, res) {
   }
 }
 
-/**
- * Get recent IoT alerts scoped strictly to the authenticated user
- */
 async function getAlerts(req, res) {
   try {
     if (!req.user) {
-      // Unauthenticated guests see 0 alerts (no dummy data)
+
       return res.json({ success: true, count: 0, data: [] });
     }
 
@@ -206,9 +182,6 @@ async function getAlerts(req, res) {
   }
 }
 
-/**
- * Delete / Dismiss an alert for the authenticated user
- */
 async function deleteAlert(req, res) {
   try {
     const { id } = req.params;
@@ -239,9 +212,6 @@ async function deleteAlert(req, res) {
   }
 }
 
-/**
- * Manually create a user alert
- */
 async function createAlert(req, res) {
   try {
     const { plotId, type, severity, message, messageEn, messageHi, value, threshold } = req.body;

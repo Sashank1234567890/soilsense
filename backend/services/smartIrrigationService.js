@@ -5,7 +5,7 @@ const CropSchedule = require('../models/CropSchedule');
 const { fetchLiveWeather } = require('./weatherService');
 
 async function evaluateIrrigation({ plotId = 'PLOT_001', cropName = 'Wheat', cropStage = 'VEGETATIVE', currentMoisture = 36.5, acreage = 1.0 }) {
-  // 1. Fetch plot details to get true geographic coordinates
+
   const plot = await Plot.findOne({ plotId }).lean();
   const schedule = await CropSchedule.findOne({ plotId, status: 'ACTIVE' }).lean();
 
@@ -14,7 +14,6 @@ async function evaluateIrrigation({ plotId = 'PLOT_001', cropName = 'Wheat', cro
   const district = schedule?.location?.district || plot?.location?.district || 'Delhi';
   const state = schedule?.location?.state || plot?.location?.state || 'Delhi';
 
-  // 2. Fetch live accurate weather directly from Open-Meteo
   const liveWeather = await fetchLiveWeather({ lat, lon, district, state, plotId });
 
   const cropTargets = {
@@ -30,7 +29,6 @@ async function evaluateIrrigation({ plotId = 'PLOT_001', cropName = 'Wheat', cro
   const target = schedule?.moistureThresholds?.optimal || cropTargets[effCrop]?.optimal || 55;
   const wiltingPoint = schedule?.notifications?.criticalThreshold || schedule?.moistureThresholds?.criticalWilting || cropTargets[effCrop]?.wiltingPoint || 24;
 
-  // Rain skip triggers ONLY if meaningful rainfall >= 5.0 mm AND precipitation probability >= 50%
   const isRainForecasted = (liveWeather.forecastRainNext24hMm >= 5.0) && (liveWeather.precipitationProbabilityMax >= 50);
 
   let urgency = 'OPTIMAL';
@@ -55,7 +53,6 @@ async function evaluateIrrigation({ plotId = 'PLOT_001', cropName = 'Wheat', cro
     waterDepthMm = 0;
   }
 
-  // 1 mm depth over 1 acre = ~4047 Liters
   const effAcreage = +acreage || schedule?.acreage || plot?.areaAcres || 1.0;
   const recommendedWaterVolumeLiters = Math.max(0, Math.round(waterDepthMm * 4047 * effAcreage));
 

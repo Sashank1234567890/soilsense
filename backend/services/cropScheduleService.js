@@ -377,7 +377,7 @@ const CROP_METADATA = {
 
 function checkCropSeasonSuitability(cropName = 'Wheat', sowingDate = new Date()) {
   const d = new Date(sowingDate);
-  const sowMonth = d.getMonth() + 1; // 1-12
+  const sowMonth = d.getMonth() + 1;
   const meta = CROP_METADATA[cropName] || CROP_METADATA.Wheat;
   const cal = meta.seasonalCalendar || {
     optimalSowingMonths: [10, 11, 12],
@@ -471,7 +471,7 @@ async function getOrInitCropSchedule(plotId = 'PLOT_001') {
 
   if (!schedule) {
     if (!plot || !plot.currentCrop) {
-      // Do NOT auto-inject Wheat crop if plot has no dedicated crop
+
       return null;
     }
 
@@ -563,7 +563,6 @@ async function evaluateCropAlerts({ plotId = 'PLOT_001', currentMoisture = null,
   const meta = CROP_METADATA[schedule.cropName] || CROP_METADATA.Wheat;
   const totalDurationDays = schedule.totalDurationDays || meta.durationDays;
 
-  // Calculate Days After Sowing (DAS) accurately
   const now = new Date();
   const sowing = new Date(schedule.sowingDate);
   const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -575,15 +574,13 @@ async function evaluateCropAlerts({ plotId = 'PLOT_001', currentMoisture = null,
   const daysUntilSowing = Math.abs(rawDas);
   const das = Math.max(0, rawDas);
 
-  // Expected Harvest Date
   const expectedHarvestDate = schedule.expectedHarvestDate || new Date(sowing.getTime() + totalDurationDays * 86400000);
   const daysRemainingUntilHarvest = Math.max(0, totalDurationDays - das);
   const lifecycleProgressPercent = Math.min(100, Math.round((das / totalDurationDays) * 100));
   const isHarvestReady = das >= (totalDurationDays - 5);
 
-  // Growth stage selection
   const stages = schedule.growthStages?.length > 0 ? schedule.growthStages : meta.stages;
-  
+
   let currentStage;
   if (isFuture) {
     currentStage = {
@@ -600,7 +597,6 @@ async function evaluateCropAlerts({ plotId = 'PLOT_001', currentMoisture = null,
     currentStage = stages.find(s => das >= s.startDay && das <= s.endDay) || stages[stages.length - 1];
   }
 
-  // Unified Weather lookup with live Open-Meteo API query
   const { fetchLiveWeather } = require('./weatherService');
   const lat = schedule.location?.lat || plot?.location?.coordinates?.latitude || (plotId === 'PLOT_STU_001' ? 28.77 : 30.9010);
   const lon = schedule.location?.lon || plot?.location?.coordinates?.longitude || (plotId === 'PLOT_STU_001' ? 77.19 : 75.8573);
@@ -609,7 +605,6 @@ async function evaluateCropAlerts({ plotId = 'PLOT_001', currentMoisture = null,
 
   let weather = await fetchLiveWeather({ lat, lon, district, state, plotId });
 
-  // Rain skip triggers ONLY if meaningful rainfall >= 5.0 mm AND precipitation probability >= 50%
   const isRainForecasted = (weather.forecastRainNext24hMm >= 5.0) && ((weather.precipitationProbabilityMax ?? 0) >= 50);
   const notif = schedule.notifications || {};
   const criticalWilting = notif.criticalThreshold || schedule.moistureThresholds.criticalWilting || 24;
@@ -619,7 +614,6 @@ async function evaluateCropAlerts({ plotId = 'PLOT_001', currentMoisture = null,
   const assignedDeviceId = schedule.assignedDeviceId || plot?.assignedDeviceId || (plotId === 'PLOT_001' ? 'DEVICE_001' : 'NONE');
   const hasLiveDevice = assignedDeviceId && assignedDeviceId !== 'NONE';
 
-  // Automatically sync moisture from live hardware reading if device is connected
   if (hasLiveDevice) {
     const latestReading = await SensorReading.findOne({
       deviceId: assignedDeviceId
@@ -753,7 +747,6 @@ async function evaluateCropAlerts({ plotId = 'PLOT_001', currentMoisture = null,
     recommendedActionHi = 'वर्तमान में सिंचाई की आवश्यकता नहीं है। दैनिक निगरानी जारी रखें।';
   }
 
-  // Precise smart irrigation water budgeting (liters required based on acreage, crop target and current moisture)
   let waterDepthMm = 0;
   let irrigationUrgency = 'OPTIMAL';
   const rainSkipTriggered = isRainForecasted;
@@ -798,7 +791,6 @@ async function evaluateCropAlerts({ plotId = 'PLOT_001', currentMoisture = null,
 
   const seasonSuitability = checkCropSeasonSuitability(schedule.cropName, schedule.sowingDate);
 
-  // Look up latest hardware reading to check if physical temperature sensor is active
   const latestHardware = hasLiveDevice ? await SensorReading.findOne({
     deviceId: assignedDeviceId,
     source: 'hardware'
@@ -823,7 +815,6 @@ async function evaluateCropAlerts({ plotId = 'PLOT_001', currentMoisture = null,
     messageEn: 'No live Arduino device connected to this farm. You cannot set live sensor alerts — only the crop timeline, phenological growth stages, and calendar reminders will be active.'
   } : null;
 
-  // Persist triggered alerts for this farm into Alert collection
   if (hasLiveDevice && notificationTriggered && alertLevel !== 'OPTIMAL' && alertLevel !== 'TIMELINE_ONLY') {
     const todayKey = new Date().toISOString().slice(0, 10);
     const dedupKey = `${plotId}_${alertLevel}_${todayKey}`;
@@ -912,7 +903,6 @@ async function markCropAsHarvested({ plotId = 'PLOT_001', actualYieldQuintals = 
   schedule.harvestNotes = harvestNotes || 'Season successfully completed and archived.';
   await schedule.save();
 
-  // Mark the plot's current crop as empty so it doesn't auto-seed Wheat
   await Plot.updateOne({ plotId }, { $set: { currentCrop: '' } });
 
   return { archived: schedule };
@@ -925,7 +915,6 @@ async function getAllFarmsSummary(userId = null) {
   }
   let plots = await Plot.find(query).sort({ plotId: 1 }).lean();
 
-  // If unauthenticated guest (no userId), only show default demo plot PLOT_001
   if (!userId && (!plots || plots.length === 0)) {
     plots = await Plot.find({ plotId: 'PLOT_001', status: { $ne: 'deleted' } }).lean();
     if (!plots || plots.length === 0) {
@@ -933,7 +922,6 @@ async function getAllFarmsSummary(userId = null) {
     }
   }
 
-  // If a logged-in user has no plots yet, return empty array (user will add their own crop/farm!)
   if (userId && (!plots || plots.length === 0)) {
     return [];
   }

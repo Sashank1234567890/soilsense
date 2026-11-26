@@ -3,11 +3,11 @@ const mongoose = require('mongoose');
 const cropSchema = new mongoose.Schema({
   name: { type: String, required: true, unique: true, trim: true },
   scientificName: { type: String, required: true, trim: true },
-  category: { 
-    type: String, 
+  category: {
+    type: String,
     required: true,
     enum: ['Cereal', 'Pulse', 'Cash Crop', 'Oilseed', 'Vegetable', 'Tuber', 'Fiber Crop', 'Horticulture', 'Spice', 'Spices', 'Millet', 'Plantation', 'Fruit'],
-    trim: true 
+    trim: true
   },
   description: { type: String, required: true },
   image: { type: String, default: '' },
@@ -18,19 +18,19 @@ const cropSchema = new mongoose.Schema({
       optimalMin: { type: Number, required: true },
       optimalMax: { type: Number, required: true }
     },
-    moisture: { // percentage
+    moisture: {
       min: { type: Number, required: true },
       max: { type: Number, required: true },
       optimalMin: { type: Number, required: true },
       optimalMax: { type: Number, required: true }
     },
-    temperature: { // °C
+    temperature: {
       min: { type: Number, required: true },
       max: { type: Number, required: true },
       optimalMin: { type: Number, required: true },
       optimalMax: { type: Number, required: true }
     },
-    nitrogen: { // kg/ha equivalent or ppm
+    nitrogen: {
       min: { type: Number, default: 40 },
       max: { type: Number, default: 150 },
       optimalMin: { type: Number, default: 80 },
@@ -48,8 +48,8 @@ const cropSchema = new mongoose.Schema({
       optimalMin: { type: Number, default: 40 },
       optimalMax: { type: Number, default: 80 }
     },
-    texture: [{ type: String }], // e.g. ["Loamy", "Clay Loam", "Sandy Loam"]
-    drainage: [{ type: String }], // e.g. ["Well-drained", "Moderate"]
+    texture: [{ type: String }],
+    drainage: [{ type: String }],
     organicMatter: {
       min: { type: Number, default: 0.5 },
       optimalMin: { type: Number, default: 1.0 }
@@ -66,11 +66,11 @@ const cropSchema = new mongoose.Schema({
     drainage: { type: Number, default: 0.05 }
   },
   suitableSoilTypes: [{ type: String }],
-  suitableRegions: [{ type: String }], // Indian States
+  suitableRegions: [{ type: String }],
   growingSeasons: [{ type: String, enum: ['Kharif', 'Rabi', 'Zaid', 'Perennial'] }],
   seasonalCalendar: {
-    optimalSowingMonths: [{ type: Number }], // 1-12
-    optimalHarvestMonths: [{ type: Number }], // 1-12
+    optimalSowingMonths: [{ type: Number }],
+    optimalHarvestMonths: [{ type: Number }],
     sowingWindowHi: { type: String, default: '' },
     sowingWindowEn: { type: String, default: '' },
     harvestWindowHi: { type: String, default: '' },
@@ -91,7 +91,6 @@ const cropSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Full-text search index for Crop to Soil Explorer
 cropSchema.index({
   name: 'text',
   scientificName: 'text',

@@ -150,7 +150,6 @@ export default function CompareSoil() {
     }
   ];
 
-  // Helper for source labeling to avoid "manual lab" wording
   const formatSourceLabel = (source, paramKey) => {
     if (paramKey === 'moisture') return 'IoT Probe (Pin A0 Capacitive)';
     if (paramKey === 'temperature') return 'IoT Sensor (Pin A1 DS18B20)';
@@ -195,7 +194,7 @@ export default function CompareSoil() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-      
+
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#0284c7', fontWeight: '700', fontSize: '0.85rem', textTransform: 'uppercase' }}>
           <GitCompare size={18} />
@@ -282,7 +281,7 @@ export default function CompareSoil() {
 
       {comparisonData && (
         <div className="grid-4" style={{ gap: '16px' }}>
-          
+
           <div className="card" style={{ padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
@@ -367,7 +366,7 @@ export default function CompareSoil() {
 
       {comparisonData && (
         <div className="grid-2" style={{ gap: '20px' }}>
-          
+
           <div className="card">
             <h3 className="card-title">Macronutrient Reserve Comparison (NPK kg/ha)</h3>
             <div className="card-subtitle">
@@ -518,7 +517,7 @@ export default function CompareSoil() {
           </div>
 
           <div className="grid-2" style={{ gap: '20px', marginTop: '16px' }}>
-            
+
             <div style={{ padding: '16px', borderRadius: '10px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                 <strong style={{ color: '#166534', fontSize: '1rem' }}>

@@ -99,7 +99,7 @@ export default function SoilDatabase() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-      
+
       <div style={{
         background: 'linear-gradient(135deg, #064e3b 0%, #065f46 60%, #047857 100%)',
         color: '#ffffff',
@@ -307,7 +307,7 @@ export default function SoilDatabase() {
 
               <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div>
-                  
+
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px', gap: '8px' }}>
                     <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: 'var(--primary-900)', lineHeight: '1.25' }}>
                       {soil.name}

@@ -23,7 +23,7 @@ export default function AboutProject() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-      
+
       <div style={{
         background: 'linear-gradient(135deg, #064e3b 0%, #065f46 60%, #047857 100%)',
         borderRadius: '16px',
@@ -240,7 +240,7 @@ export default function AboutProject() {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
-              
+
               <div style={{ padding: '18px', backgroundColor: 'var(--bg-subtle)', borderRadius: '10px', border: '1px solid var(--border-light)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                   <h3 style={{ fontSize: '1.05rem', fontWeight: '800', color: 'var(--primary-900)' }}>

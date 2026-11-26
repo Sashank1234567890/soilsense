@@ -14,10 +14,10 @@ const soilTestSchema = new mongoose.Schema({
     default: 'general'
   },
   values: {
-    moisture: { type: Number }, // in %
-    temperature: { type: Number }, // in °C
+    moisture: { type: Number },
+    temperature: { type: Number },
     pH: { type: Number },
-    nitrogen: { type: Number }, // kg/ha
+    nitrogen: { type: Number },
     phosphorus: { type: Number },
     potassium: { type: Number },
     texture: { type: String, trim: true },
@@ -50,7 +50,7 @@ const soilTestSchema = new mongoose.Schema({
     }
   },
   dataCompleteness: {
-    score: { type: Number, default: 0 }, // 0 to 100%
+    score: { type: Number, default: 0 },
     isComplete: { type: Boolean, default: false },
     availableCount: { type: Number, default: 0 },
     totalExpected: { type: Number, default: 7 },

@@ -46,11 +46,10 @@ async function generateTestData() {
       });
     }
 
-    // Insert with ordered: false to skip duplicate keys if any
     try {
       await SensorReading.insertMany(readingsBatch, { ordered: false });
     } catch (e) {
-      // Ignore unique duplicates if any
+
     }
 
     const count = await SensorReading.countDocuments();

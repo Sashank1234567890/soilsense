@@ -2,9 +2,6 @@ const SoilTest = require('../models/SoilTest');
 const SensorReading = require('../models/SensorReading');
 const Plot = require('../models/Plot');
 
-/**
- * Get historical soil tests for a specific plot
- */
 async function getPlotSoilHistory(req, res) {
   try {
     const { plotId } = req.params;
@@ -27,9 +24,6 @@ async function getPlotSoilHistory(req, res) {
   }
 }
 
-/**
- * Get moisture time series trend for a device
- */
 async function getDeviceMoistureHistory(req, res) {
   try {
     const { deviceId } = req.params;

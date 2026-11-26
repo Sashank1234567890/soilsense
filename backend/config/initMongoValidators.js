@@ -1,15 +1,8 @@
-/**
- * SoilSense: MongoDB Native JSON Schema Validator Initializer
- * Enforces database-level constraints using MongoDB $jsonSchema (collMod).
- * Demonstrates advanced DBMS schema validation independent of application ODM.
- */
-
 async function applyMongoSchemaValidators(db) {
   try {
     const collections = await db.listCollections().toArray();
     const existingNames = collections.map(c => c.name);
 
-    // 1. sensor_readings collection schema validator
     if (!existingNames.includes('sensor_readings')) {
       await db.createCollection('sensor_readings');
     }
@@ -33,7 +26,6 @@ async function applyMongoSchemaValidators(db) {
       validationAction: 'error'
     });
 
-    // 2. soil_tests collection schema validator
     if (!existingNames.includes('soil_tests')) {
       await db.createCollection('soil_tests');
     }

@@ -41,7 +41,6 @@ export default function FarmManagement() {
   const [selectedFarmForNotif, setSelectedFarmForNotif] = useState(null);
   const [successToast, setSuccessToast] = useState('');
 
-  // Add Farm Form State
   const [name, setName] = useState('');
   const [district, setDistrict] = useState('Ludhiana');
   const [state, setState] = useState('Punjab');
@@ -53,7 +52,6 @@ export default function FarmManagement() {
   const [assignedDeviceId, setAssignedDeviceId] = useState('DEVICE_001');
   const [submittingFarm, setSubmittingFarm] = useState(false);
 
-  // Notification Config State
   const [selectedFarmDeviceId, setSelectedFarmDeviceId] = useState('DEVICE_001');
   const [notifConfig, setNotifConfig] = useState({
     enabled: true,
@@ -92,7 +90,6 @@ export default function FarmManagement() {
     return () => clearInterval(interval);
   }, [user?._id, user?.email]);
 
-  // Handle Add New Farm
   const handleAddFarmSubmit = async (e) => {
     e.preventDefault();
     if (!cropName) {
@@ -196,7 +193,7 @@ export default function FarmManagement() {
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 16px' }}>
-      
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 style={{ fontSize: '26px', fontWeight: '800', color: '#1b4332', display: 'flex', alignItems: 'center', gap: '12px', margin: 0 }}>
@@ -328,7 +325,7 @@ export default function FarmManagement() {
                   }}
                 >
                   <div>
-                    
+
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                       <div>
                         <span style={{
@@ -816,7 +813,7 @@ export default function FarmManagement() {
             </div>
 
             <form onSubmit={handleSaveNotifications} style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '16px' }}>
-              
+
               <div style={{ backgroundColor: '#f0f9ff', border: '1.5px solid #bae6fd', borderRadius: '10px', padding: '12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
                   <Cpu size={16} color="#0284c7" />

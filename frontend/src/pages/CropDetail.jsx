@@ -38,7 +38,7 @@ export default function CropDetail() {
   const [loading, setLoading] = useState(true);
 
   const [isTestModalOpen, setIsTestModalOpen] = useState(false);
-  const [testMode, setTestMode] = useState('manual_lab'); // 'manual_lab', 'hardware', 'existing_profile'
+  const [testMode, setTestMode] = useState('manual_lab');
   const [iotConnected, setIotConnected] = useState(false);
   const [profiles, setProfiles] = useState([]);
   const [selectedProfileId, setSelectedProfileId] = useState('');
@@ -221,7 +221,7 @@ export default function CropDetail() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-      
+
       <div>
         <Link to="/crop-to-soil" className="btn btn-secondary btn-sm" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
           <ArrowLeft size={16} />
@@ -299,7 +299,7 @@ export default function CropDetail() {
         </h2>
 
         <div className="grid-3">
-          
+
           <div className="card">
             <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Droplets size={20} color="var(--primary-700)" />
@@ -391,7 +391,7 @@ export default function CropDetail() {
 
       {evalResult && (
         <div id="suitability-results-section" style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginTop: '12px' }}>
-          
+
           <div className="card" style={{
             borderLeft: `6px solid ${
               evalResult.overallSuitability === 'Suitable' ? '#15803d' :

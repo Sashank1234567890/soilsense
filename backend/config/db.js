@@ -1,9 +1,5 @@
 const mongoose = require('mongoose');
 
-/**
- * SoilSense-Pro Database Connection
- * Dedicated Database: soilsense_pro_db (Independent of legacy soilsense)
- */
 const connectDB = async () => {
   try {
     const connStr = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/soilsense_pro_db?replicaSet=rs0';

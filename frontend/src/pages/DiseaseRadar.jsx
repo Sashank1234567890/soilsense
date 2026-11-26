@@ -67,7 +67,7 @@ export default function DiseaseRadar() {
 
   return (
     <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '24px 16px' }}>
-      
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 style={{ fontSize: '26px', fontWeight: '800', color: '#1b4332', display: 'flex', alignItems: 'center', gap: '12px', margin: 0 }}>
@@ -245,7 +245,7 @@ export default function DiseaseRadar() {
 
         {isHighRisk ? (
           <div style={{ display: 'grid', gap: '12px' }}>
-            
+
             <div style={{
               display: 'flex',
               alignItems: 'flex-start',

@@ -52,7 +52,7 @@ export default function CropToSoil() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      
+
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#b45309', fontWeight: '700', fontSize: '0.85rem', textTransform: 'uppercase' }}>
           <Sprout size={18} />

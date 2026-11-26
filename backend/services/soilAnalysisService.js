@@ -1,9 +1,6 @@
 const SoilTest = require('../models/SoilTest');
 const SoilType = require('../models/SoilType');
 
-/**
- * Evaluates completeness and parameter health of a soil test
- */
 function analyzeSoilCondition(values, sources) {
   const expectedParams = ['moisture', 'temperature', 'pH', 'nitrogen', 'phosphorus', 'potassium', 'texture'];
   let testedCount = 0;

@@ -9,7 +9,6 @@ const api = axios.create({
   }
 });
 
-// Attach Authorization Bearer token automatically if stored on both api instance and global axios
 const attachToken = (config) => {
   const token = localStorage.getItem('soilsense_token');
   if (token && token !== 'undefined' && token !== 'null') {
@@ -22,7 +21,6 @@ const attachToken = (config) => {
 api.interceptors.request.use(attachToken, (error) => Promise.reject(error));
 axios.interceptors.request.use(attachToken, (error) => Promise.reject(error));
 
-// Response interceptor to gracefully clear dead tokens
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -34,7 +32,6 @@ api.interceptors.response.use(
   }
 );
 
-// Authentication APIs
 export const registerUser = (userData) => api.post('/auth/register', userData);
 export const loginUser = (credentials) => api.post('/auth/login', credentials);
 export const getCurrentUser = () => api.get('/auth/me');
@@ -43,12 +40,10 @@ export const getAllAccounts = () => api.get(`/auth/accounts?_t=${Date.now()}`);
 export const switchAccount = (payload) => api.post('/auth/switch-account', payload);
 export const deleteAccount = (id) => api.delete(`/auth/accounts/${id}`);
 
-// Crops
 export const getCrops = (params) => api.get('/crops', { params });
 export const searchCrops = (q, category) => api.get('/crops/search', { params: { q, category } });
 export const getCropById = (id) => api.get(`/crops/${id}`);
 
-// Soil
 export const getSoilTypes = () => api.get('/soil-types');
 export const searchSoilTypes = (q) => api.get('/soil-types/search', { params: { q } });
 export const getSoilTypeById = (id) => api.get(`/soil-types/${id}`);
@@ -60,18 +55,15 @@ export const analyseSoil = (data) => api.post('/soil/analyse', data);
 export const classifySoil = (data) => api.post('/soil/classify', data);
 export const compareSoil = (data) => api.post('/soil/compare', data);
 
-// Recommendations
 export const evaluateAllCrops = (soilTestId) => api.post('/recommendations', { soilTestId });
 export const evaluateCropSpecific = (soilTestId, cropId) => api.post('/recommendations/crop-specific', { soilTestId, cropId });
 export const getRecommendationById = (id) => api.get(`/recommendations/${id}`);
 export const getRecommendationByTestId = (soilTestId) => api.get(`/recommendations/soil/${soilTestId}`);
 
-// Improvement Plans
 export const createImprovementPlan = (data) => api.post('/soil/improvement', data);
 export const getImprovementPlanById = (id) => api.get(`/soil/improvement/${id}`);
 export const getImprovementByTestId = (soilTestId) => api.get(`/soil/improvement/soil/${soilTestId}`);
 
-// IoT Telemetry & Devices
 export const getDevices = () => api.get('/devices');
 export const getDeviceById = (id) => api.get(`/devices/${id}`);
 export const getDeviceReadings = (id, limit = 30) => api.get(`/devices/${id}/readings`, { params: { limit } });
@@ -82,17 +74,14 @@ export const deleteAlert = (id) => api.delete(`/alerts/${id}`);
 export const createAlert = (data) => api.post('/alerts', data);
 export const getIoTStatus = () => api.get('/iot/status');
 
-// Reports
 export const getReports = () => api.get('/reports');
 export const getReportById = (id) => api.get(`/reports/${id}`);
 export const createReport = (soilTestId) => api.post('/reports', { soilTestId });
 export const getReportPDFUrl = (id) => `/api/reports/${id}/pdf`;
 
-// History
 export const getPlotSoilHistory = (plotId) => api.get(`/history/soil/${plotId}`);
 export const getDeviceMoistureHistory = (deviceId, hours = 24) => api.get(`/history/moisture/${deviceId}`, { params: { hours } });
 
-// Advanced DBMS Query Explorer
 export const getPredefinedQueries = () => api.get('/dbms/queries');
 export const executeDBMSQuery = (queryId) => api.post('/dbms/execute', { queryId });
 export const getDatabaseStats = () => api.get('/dbms/stats');

@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const soilTypeSchema = new mongoose.Schema({
   name: { type: String, required: true, unique: true, trim: true },
-  classification: { type: String, required: true, trim: true }, // e.g. Vertisols, Entisols
+  classification: { type: String, required: true, trim: true },
   image: { type: String, default: '' },
   shortDescription: { type: String, required: true },
   characteristics: [{ type: String }],
@@ -25,16 +25,16 @@ const soilTypeSchema = new mongoose.Schema({
     potassiumStatus: { type: String, default: 'High' },
     organicCarbon: { type: String, default: 'Medium' }
   },
-  geographicDistribution: [{ type: String }], // Indian States & river basins
+  geographicDistribution: [{ type: String }],
   agriculturalApplications: [{ type: String }],
   suitableCropsSummary: [{
     cropName: { type: String, required: true },
     scientificName: { type: String },
     category: { type: String },
-    suitabilityLevel: { 
-      type: String, 
+    suitabilityLevel: {
+      type: String,
       enum: ['Highly Suitable', 'Suitable', 'Suitable with Improvements', 'Not Recommended'],
-      required: true 
+      required: true
     },
     explanation: { type: String, required: true }
   }],
@@ -48,7 +48,6 @@ const soilTypeSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Full-text search index for Soil to Crop Explorer
 soilTypeSchema.index({
   name: 'text',
   classification: 'text',

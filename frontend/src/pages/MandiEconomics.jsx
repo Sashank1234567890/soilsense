@@ -35,7 +35,7 @@ export default function MandiEconomics() {
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 16px' }}>
-      
+
       <div style={{ marginBottom: '24px' }}>
         <h1 style={{ fontSize: '26px', fontWeight: '800', color: '#1b4332', display: 'flex', alignItems: 'center', gap: '12px', margin: 0 }}>
           <TrendingUp size={30} color="#2d6a4f" />
@@ -52,7 +52,7 @@ export default function MandiEconomics() {
 
       {data?.current && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '18px', marginBottom: '26px' }}>
-          
+
           <div style={{
             backgroundColor: '#ffffff',
             borderRadius: '12px',
@@ -197,7 +197,7 @@ export default function MandiEconomics() {
                       }}
                     >
                       <td style={{ padding: '14px 16px', fontWeight: '700', color: '#0f172a' }}>
-                        {cropNameTranslations[c.cropName] || c.cropName} 
+                        {cropNameTranslations[c.cropName] || c.cropName}
                       </td>
                       <td style={{ padding: '14px 16px', color: '#475569' }}>
                         {c.yieldQuintalAcre} {lang === 'hi' ? 'क्विंटल' : 'Qtl/Acre'}
@@ -208,7 +208,7 @@ export default function MandiEconomics() {
                       <td style={{ padding: '14px 16px', color: '#1e3a8a', fontWeight: '700' }}>
                         ₹{c.grossRevenueInr.toLocaleString()}
                       </td>
-                      
+
                       <td style={{ padding: '14px 16px', color: '#475569', fontWeight: '600' }}>
                         ₹{c.totalCostInr.toLocaleString()}
                       </td>

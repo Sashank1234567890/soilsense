@@ -727,7 +727,7 @@ async function seedSoilTypes() {
 
     const created = await SoilType.insertMany(indianSoilTypes);
     console.log(`[Seed Success] Inserted ${created.length} Indian Soil Types with ICAR/NBSS&LUP data.`);
-    
+
     await mongoose.disconnect();
     process.exit(0);
   } catch (err) {

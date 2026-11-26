@@ -1,14 +1,10 @@
-/**
- * Format and translate alert messages cleanly based on current language mode (English / Hindi).
- * Ensures that when English is active, no Hindi script is displayed, even for legacy records.
- */
 export function formatAlertMessage(alt, currentLang = 'en') {
   if (!alt) return '';
 
   if (currentLang === 'hi') {
     if (alt.messageHi) return alt.messageHi;
     if (alt.message && /[\u0900-\u097F]/.test(alt.message)) return alt.message;
-    // Fallback translation from English to Hindi
+
     if (alt.type === 'SOONER_NOTICE') {
       return `मिट्टी की नमी ${alt.value ?? 34}% तक आ गई है (पूर्व सूचना सीमा ${alt.threshold ?? 40}% के निकट)। अगले 48 घंटों में बारिश की संभावना नहीं है।`;
     }
@@ -24,10 +20,8 @@ export function formatAlertMessage(alt, currentLang = 'en') {
     return alt.message || 'खेत चेतावनी अलर्ट दर्ज किया गया।';
   }
 
-  // English mode
   if (alt.messageEn) return alt.messageEn;
 
-  // If the stored message is in Hindi script, translate it dynamically to English
   if (/[\u0900-\u097F]/.test(alt.message || '')) {
     if (alt.type === 'SOONER_NOTICE') {
       return `Soil moisture is depleting (${alt.value ?? 34}%). Approaching threshold of ${alt.threshold ?? 40}%. No rain expected in next 48h.`;

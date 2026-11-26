@@ -1,8 +1,8 @@
 const DiseaseRisk = require('../models/DiseaseRisk');
 
 async function assessDiseaseRisk({ plotId, cropName = 'Wheat', recentReadings = [] }) {
-  const avgMoisture = recentReadings.length > 0 
-    ? recentReadings.reduce((sum, r) => sum + r.moisture, 0) / recentReadings.length 
+  const avgMoisture = recentReadings.length > 0
+    ? recentReadings.reduce((sum, r) => sum + r.moisture, 0) / recentReadings.length
     : 45.0;
 
   const isSaturated = avgMoisture >= 80.0;

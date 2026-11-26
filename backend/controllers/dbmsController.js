@@ -8,9 +8,6 @@ const IrrigationEvent = require('../models/IrrigationEvent');
 const Plot = require('../models/Plot');
 const Device = require('../models/Device');
 
-/**
- * Predefined read-only queries with architectural DBMS descriptions
- */
 const PREDEFINED_QUERIES = [
   {
     id: 'AGG_DAILY_AVG_MOISTURE',
@@ -187,9 +184,6 @@ const PREDEFINED_QUERIES = [
   }
 ];
 
-/**
- * Get list of predefined queries
- */
 async function getPredefinedQueries(req, res) {
   return res.json({
     success: true,
@@ -204,9 +198,6 @@ async function getPredefinedQueries(req, res) {
   });
 }
 
-/**
- * Execute a selected predefined query and return results + executionStats
- */
 async function executeQuery(req, res) {
   try {
     const { queryId } = req.body;
@@ -224,7 +215,7 @@ async function executeQuery(req, res) {
     let executionStats = null;
 
     if (targetQuery.isFind) {
-      // Find query with explain()
+
       const cursor = coll.find(targetQuery.filter).sort(targetQuery.sort).limit(targetQuery.limit);
       const explanation = await cursor.explain('executionStats');
       result = await coll.find(targetQuery.filter).sort(targetQuery.sort).limit(targetQuery.limit).toArray();
@@ -239,7 +230,7 @@ async function executeQuery(req, res) {
         indexName: explanation.executionStats?.executionStages?.inputStage?.indexName || 'COLLSCAN'
       };
     } else {
-      // Aggregation pipeline with explain()
+
       result = await coll.aggregate(targetQuery.pipeline).toArray();
       let explanation = null;
       try {
@@ -277,9 +268,6 @@ async function executeQuery(req, res) {
   }
 }
 
-/**
- * Get overall DBMS statistics
- */
 async function getDatabaseStats(req, res) {
   try {
     const db = mongoose.connection.db;
@@ -297,7 +285,7 @@ async function getDatabaseStats(req, res) {
           indexes: indexes.map(i => ({ name: i.name, key: i.key }))
         });
       } catch (e) {
-        // ignore system collections
+
       }
     }
 
@@ -311,10 +299,6 @@ async function getDatabaseStats(req, res) {
   }
 }
 
-/**
- * Multi-Document ACID Transaction demonstration endpoint
- * Atomically creates a Soil Test, generates recommendation, and updates Plot lastTestedAt
- */
 async function executeTransactionDemo(req, res) {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -346,7 +330,6 @@ async function executeTransactionDemo(req, res) {
 
     await newTest.save({ session });
 
-    // Update Plot atomically
     await Plot.findOneAndUpdate(
       { plotId: plotId || 'PLOT_001' },
       { lastTestedAt: new Date() },

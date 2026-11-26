@@ -48,7 +48,7 @@ export default function SoilHealthCardPage() {
 
   return (
     <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '24px 16px' }}>
-      
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 style={{ fontSize: '28px', fontWeight: '700', color: '#1b4332', display: 'flex', alignItems: 'center', gap: '12px', margin: 0 }}>
@@ -153,7 +153,7 @@ export default function SoilHealthCardPage() {
           padding: '36px',
           boxShadow: '0 4px 16px rgba(0,0,0,0.08)'
         }}>
-          
+
           <div style={{ textAlign: 'center', borderBottom: '2px solid #2d6a4f', paddingBottom: '20px', marginBottom: '24px' }}>
             <div style={{ fontSize: '13px', fontWeight: '800', letterSpacing: '1.5px', color: '#1b4332', textTransform: 'uppercase' }}>
               GOVERNMENT OF INDIA • DEPARTMENT OF AGRICULTURE & FARMERS WELFARE

@@ -38,7 +38,7 @@ export default function SoilToCrop() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      
+
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary-700)', fontWeight: '700', fontSize: '0.85rem', textTransform: 'uppercase' }}>
           <Layers size={18} />

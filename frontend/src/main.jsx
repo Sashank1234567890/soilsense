@@ -4,7 +4,6 @@ import axios from 'axios';
 import App from './App';
 import './styles/index.css';
 
-// Automatically attach Bearer token to all outgoing axios requests dynamically
 axios.interceptors.request.use((config) => {
   try {
     const token = localStorage.getItem('soilsense_token');

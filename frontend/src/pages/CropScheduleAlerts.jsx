@@ -128,7 +128,6 @@ export default function CropScheduleAlerts() {
   const [locLoading, setLocLoading] = useState(false);
   const [locSuccess, setLocSuccess] = useState('');
 
-  // MongoDB User-Scoped Alerts State
   const [userDbAlerts, setUserDbAlerts] = useState([]);
   const [loadingDbAlerts, setLoadingDbAlerts] = useState(false);
   const [alertActionMsg, setAlertActionMsg] = useState('');
@@ -682,7 +681,7 @@ export default function CropScheduleAlerts() {
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 16px' }}>
-      
+
       <div style={{ marginBottom: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
           <div>
@@ -1054,7 +1053,7 @@ export default function CropScheduleAlerts() {
           </div>
 
           <form onSubmit={handleSaveNotifications} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px' }}>
-            
+
             <div style={{
               gridColumn: '1 / -1',
               backgroundColor: '#ffffff',
@@ -1555,7 +1554,7 @@ export default function CropScheduleAlerts() {
               marginTop: '12px',
               marginBottom: '14px'
             }}>
-              
+
               <div style={{
                 backgroundColor: '#ffffff',
                 border: '1px solid #cbd5e1',
@@ -2051,7 +2050,7 @@ export default function CropScheduleAlerts() {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px' }}>
-          
+
           <div style={{
             backgroundColor: '#f0fdf4',
             border: '1.5px solid #86efac',

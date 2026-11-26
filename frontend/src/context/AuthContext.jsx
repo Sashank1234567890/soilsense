@@ -4,7 +4,6 @@ import { loginUser, registerUser, getCurrentUser, switchDemoProfile, switchAccou
 
 const AuthContext = createContext();
 
-// Session helpers for managing multiple logged-in accounts on this device
 function getStoredSessions() {
   try {
     const raw = localStorage.getItem('soilsense_active_sessions');
@@ -58,7 +57,6 @@ export function AuthProvider({ children }) {
   const [sessions, setSessions] = useState(() => getStoredSessions());
   const [loading, setLoading] = useState(true);
 
-  // Sync axios Authorization header immediately when token changes
   useEffect(() => {
     if (token && token !== 'undefined' && token !== 'null') {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -67,7 +65,6 @@ export function AuthProvider({ children }) {
     }
   }, [token]);
 
-  // Initialize Auth on app load
   useEffect(() => {
     async function loadAuth() {
       const storedToken = localStorage.getItem('soilsense_token');
@@ -88,7 +85,6 @@ export function AuthProvider({ children }) {
         }
       }
 
-      // Check if another stored session is available
       const storedList = getStoredSessions();
       if (storedList.length > 0) {
         const next = storedList[0];
@@ -102,7 +98,6 @@ export function AuthProvider({ children }) {
         return;
       }
 
-      // If no valid session exists at all, auto-load default demo farmer
       try {
         const demoRes = await switchDemoProfile('farmer');
         if (demoRes.data?.success) {
@@ -188,7 +183,7 @@ export function AuthProvider({ children }) {
   const switchToUser = async (emailOrId) => {
     setLoading(true);
     try {
-      // First check if token is already in local active sessions
+
       const existing = sessions.find(s =>
         (s._id || '') === emailOrId || (s.email || '').toLowerCase() === (emailOrId || '').toLowerCase()
       );
@@ -202,7 +197,6 @@ export function AuthProvider({ children }) {
         return { success: true, data: existing };
       }
 
-      // Otherwise fetch switch token from backend
       const payload = typeof emailOrId === 'string' && emailOrId.includes('@') ? { email: emailOrId } : { userId: emailOrId };
       const res = await switchAccount(payload);
       if (res.data?.success) {
@@ -222,9 +216,6 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Sign out a specific account from the logged-in accounts list:
-  // - If it was the active account and another account is logged in: directly log in to the other account!
-  // - If list is now empty: clear session and return remaining: false (to go to sign in page)
   const signOutAccount = (emailOrId) => {
     const targetEmail = (emailOrId || user?.email || '').toLowerCase();
     const targetId = emailOrId || user?._id;

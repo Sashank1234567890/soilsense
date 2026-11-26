@@ -104,7 +104,7 @@ exports.getCropScheduleAndAlerts = async (req, res) => {
       if (targetPlotId) {
         const owned = await Plot.findOne({ plotId: targetPlotId, owner: req.user._id, status: { $ne: 'deleted' } });
         if (!owned) {
-          // If the requested plot does not belong to this user, try finding their first plot
+
           const firstPlot = await Plot.findOne({ owner: req.user._id, status: { $ne: 'deleted' } }).sort({ plotId: 1 });
           if (!firstPlot) {
             return res.json({ success: true, hasFarm: false, data: null });
@@ -258,7 +258,6 @@ exports.updateLocation = async (req, res) => {
     };
     await schedule.save();
 
-    // Also update Plot document if it exists in DB
     const Plot = require('../models/Plot');
     await Plot.updateOne(
       { plotId },
@@ -271,7 +270,6 @@ exports.updateLocation = async (req, res) => {
       }
     );
 
-    // Call unified live Open-Meteo Weather API for the new location to fetch real-time rain & temperature
     const newSnapshot = await fetchLiveWeather({
       lat: parsedLat,
       lon: parsedLon,
@@ -281,7 +279,6 @@ exports.updateLocation = async (req, res) => {
       forceRefresh: true
     });
 
-    // Re-evaluate crop alerts for this plot with the new live weather snapshot
     const updatedEval = await evaluateCropAlerts({ plotId });
 
     res.json({

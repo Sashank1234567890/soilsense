@@ -3,7 +3,6 @@ const router = express.Router();
 const advisoryCtrl = require('../controllers/advisoryController');
 const { protect } = require('../middleware/auth');
 
-// Allow optional auth to extract req.user if token is present
 router.use(protect);
 
 router.get('/irrigation', advisoryCtrl.getIrrigationAdvisory);
@@ -19,7 +18,6 @@ router.post('/crop-schedule', advisoryCtrl.updateCropSchedule);
 router.post('/crop-harvest', advisoryCtrl.harvestCrop);
 router.post('/update-location', advisoryCtrl.updateLocation);
 
-// Multi-Farm & Multi-Crop Management Routes
 router.get('/farms', advisoryCtrl.getAllFarms);
 router.post('/farms', advisoryCtrl.addFarm);
 router.post('/farm-notifications', advisoryCtrl.updateNotifications);

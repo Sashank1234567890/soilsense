@@ -2,9 +2,6 @@ const CropRecommendation = require('../models/CropRecommendation');
 const { evaluateCropSpecific, evaluateAllCrops } = require('../services/cropRecommendationService');
 const { cropSpecificRecommendationSchema, generalRecommendationSchema } = require('../validators');
 
-/**
- * Endpoint: Evaluate soil test against all crops
- */
 async function getRecommendationsAllCrops(req, res) {
   try {
     const { error, value } = generalRecommendationSchema.validate(req.body);
@@ -23,9 +20,6 @@ async function getRecommendationsAllCrops(req, res) {
   }
 }
 
-/**
- * Endpoint: Evaluate soil test against a specific crop (Module 2 core flow)
- */
 async function getRecommendationCropSpecific(req, res) {
   try {
     const { error, value } = cropSpecificRecommendationSchema.validate(req.body);
@@ -44,9 +38,6 @@ async function getRecommendationCropSpecific(req, res) {
   }
 }
 
-/**
- * Get recommendation by recommendation ID
- */
 async function getRecommendationById(req, res) {
   try {
     const rec = await CropRecommendation.findById(req.params.id)
@@ -61,9 +52,6 @@ async function getRecommendationById(req, res) {
   }
 }
 
-/**
- * Get recommendation by soil test ID
- */
 async function getRecommendationBySoilTestId(req, res) {
   try {
     const rec = await CropRecommendation.findOne({ soilTestId: req.params.soilTestId })

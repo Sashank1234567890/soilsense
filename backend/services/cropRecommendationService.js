@@ -2,9 +2,6 @@ const Crop = require('../models/Crop');
 const SoilTest = require('../models/SoilTest');
 const CropRecommendation = require('../models/CropRecommendation');
 
-/**
- * Calculates parameter compatibility and deviations
- */
 function evaluateParameter(paramName, measuredVal, reqs, weight, source) {
   if (measuredVal === undefined || measuredVal === null || isNaN(measuredVal)) {
     return {
@@ -64,9 +61,6 @@ function evaluateParameter(paramName, measuredVal, reqs, weight, source) {
   };
 }
 
-/**
- * Evaluates a single crop against a soil test
- */
 function evaluateCropAgainstSoil(crop, testValues, paramSources) {
   const req = crop.idealRequirements;
   const weights = crop.parameterWeights || {
@@ -87,34 +81,27 @@ function evaluateCropAgainstSoil(crop, testValues, paramSources) {
   const missing = [];
   const suggestions = [];
 
-  // 1. pH
   const phRes = evaluateParameter('pH', testValues.pH, req.pH, weights.pH, paramSources?.pH);
   comparisons.push(phRes);
 
-  // 2. Moisture
   const moistRes = evaluateParameter('Moisture (%)', testValues.moisture, req.moisture, weights.moisture, paramSources?.moisture);
   comparisons.push(moistRes);
 
-  // 3. Temperature
   const tempRes = evaluateParameter('Temperature (°C)', testValues.temperature, req.temperature, weights.temperature, paramSources?.temperature);
   comparisons.push(tempRes);
 
-  // 4. Nitrogen
   const nRes = evaluateParameter('Nitrogen (N kg/ha)', testValues.nitrogen, req.nitrogen, weights.nitrogen, paramSources?.nitrogen);
   comparisons.push(nRes);
 
-  // 5. Phosphorus
   const pRes = evaluateParameter('Phosphorus (P kg/ha)', testValues.phosphorus, req.phosphorus, weights.phosphorus, paramSources?.phosphorus);
   comparisons.push(pRes);
 
-  // 6. Potassium
   const kRes = evaluateParameter('Potassium (K kg/ha)', testValues.potassium, req.potassium, weights.potassium, paramSources?.potassium);
   comparisons.push(kRes);
 
-  // 7. Texture evaluation if provided
   if (testValues.texture) {
-    const isTextureMatch = req.texture && req.texture.some(t => 
-      t.toLowerCase().includes(testValues.texture.toLowerCase()) || 
+    const isTextureMatch = req.texture && req.texture.some(t =>
+      t.toLowerCase().includes(testValues.texture.toLowerCase()) ||
       testValues.texture.toLowerCase().includes(t.toLowerCase())
     );
     comparisons.push({
@@ -131,7 +118,6 @@ function evaluateCropAgainstSoil(crop, testValues, paramSources) {
     });
   }
 
-  // Categorize parameter statuses
   let testedWeightsSum = 0;
   let weightedScoreSum = 0;
   let testedCount = 0;
@@ -156,9 +142,7 @@ function evaluateCropAgainstSoil(crop, testValues, paramSources) {
     }
   }
 
-  // Data completeness check:
-  // Must test at least 2 critical parameters (e.g. moisture and at least pH or a nutrient)
-  const isDataSufficient = (testValues.moisture !== null && testValues.moisture !== undefined) && 
+  const isDataSufficient = (testValues.moisture !== null && testValues.moisture !== undefined) &&
                            (testedCount >= 3 || (testedCount >= 2 && testValues.pH !== null && testValues.pH !== undefined));
 
   let finalScore = null;
@@ -166,8 +150,7 @@ function evaluateCropAgainstSoil(crop, testValues, paramSources) {
 
   if (isDataSufficient && testedWeightsSum > 0) {
     finalScore = Math.round(weightedScoreSum / testedWeightsSum);
-    
-    // Penalize heavily if critical limits are breached (e.g. extreme pH or moisture deficit)
+
     if (deficient.includes('Moisture (%)') && testValues.moisture < (req.moisture.min - 15)) {
       finalScore = Math.min(finalScore, 45);
     }
@@ -186,7 +169,6 @@ function evaluateCropAgainstSoil(crop, testValues, paramSources) {
     }
   }
 
-  // Explanation generation
   let explanation = '';
   if (!isDataSufficient) {
     explanation = `Insufficient laboratory or sensor data for a complete suitability evaluation. Only ${testedCount} parameter(s) tested. Missing: ${missing.join(', ')}. Comprehensive testing (pH and NPK) is required before final crop selection.`;
@@ -220,9 +202,6 @@ function evaluateCropAgainstSoil(crop, testValues, paramSources) {
   };
 }
 
-/**
- * Service: Evaluates a soil test against a specific crop
- */
 async function evaluateCropSpecific(soilTestId, cropId) {
   const soilTest = await SoilTest.findById(soilTestId);
   if (!soilTest) {
@@ -236,7 +215,6 @@ async function evaluateCropSpecific(soilTestId, cropId) {
 
   const evaluation = evaluateCropAgainstSoil(crop, soilTest.values, soilTest.parameterSources);
 
-  // Compute overall data completeness percent
   const testedCount = 7 - evaluation.missingParameters.length;
   const completenessPercent = Math.round((testedCount / 7) * 100);
   const isSufficient = evaluation.suitabilityLevel !== 'Insufficient Data';
@@ -248,7 +226,6 @@ async function evaluateCropSpecific(soilTestId, cropId) {
   else if (evaluation.suitabilityLevel === 'Not Recommended') overallSuitability = 'Not Suitable';
   else overallSuitability = 'Insufficient Data';
 
-  // Save recommendation to MongoDB
   const recommendation = await CropRecommendation.create({
     soilTestId: soilTest._id,
     selectedCropId: crop._id,
@@ -260,7 +237,6 @@ async function evaluateCropSpecific(soilTestId, cropId) {
     recommendations: [evaluation]
   });
 
-  // Retain selectedCropId on soilTest as required by the prompt
   soilTest.selectedCropId = crop._id;
   soilTest.selectedCropName = crop.name;
   await soilTest.save();
@@ -268,9 +244,6 @@ async function evaluateCropSpecific(soilTestId, cropId) {
   return recommendation;
 }
 
-/**
- * Service: Evaluates a soil test against all crops in MongoDB
- */
 async function evaluateAllCrops(soilTestId) {
   const soilTest = await SoilTest.findById(soilTestId);
   if (!soilTest) {
@@ -278,11 +251,10 @@ async function evaluateAllCrops(soilTestId) {
   }
 
   const allCrops = await Crop.find({});
-  const evaluations = allCrops.map(crop => 
+  const evaluations = allCrops.map(crop =>
     evaluateCropAgainstSoil(crop, soilTest.values, soilTest.parameterSources)
   );
 
-  // Sort by suitability score descending (nulls last)
   evaluations.sort((a, b) => {
     if (a.suitabilityScore === null) return 1;
     if (b.suitabilityScore === null) return -1;

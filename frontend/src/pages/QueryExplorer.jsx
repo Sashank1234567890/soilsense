@@ -33,7 +33,7 @@ export default function QueryExplorer() {
   const [queryResult, setQueryResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [dbStats, setDbStats] = useState(null);
-  const [activeOutputTab, setActiveOutputTab] = useState('table'); // 'table' | 'json' | 'pipeline'
+  const [activeOutputTab, setActiveOutputTab] = useState('table');
   const [copied, setCopied] = useState(false);
 
   const [filterCategory, setFilterCategory] = useState('all');
@@ -177,7 +177,7 @@ export default function QueryExplorer() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-      
+
       <div style={{
         background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 60%, #4338ca 100%)',
         borderRadius: '16px',
@@ -338,7 +338,7 @@ export default function QueryExplorer() {
         </div>
       ) : queryResult && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          
+
           <div className="card" style={{ backgroundColor: '#0f172a', color: '#ffffff', border: 'none', boxShadow: '0 8px 20px rgba(0, 0, 0, 0.25)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
               <div>
@@ -389,7 +389,7 @@ export default function QueryExplorer() {
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                
+
                 <div style={{ display: 'flex', backgroundColor: 'var(--bg-subtle)', borderRadius: '8px', padding: '2px' }}>
                   <button
                     type="button"

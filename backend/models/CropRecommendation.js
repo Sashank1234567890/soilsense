@@ -5,10 +5,10 @@ const parameterComparisonSchema = new mongoose.Schema({
   measuredValue: { type: mongoose.Schema.Types.Mixed },
   requiredRange: { type: String, required: true },
   optimalRange: { type: String },
-  status: { 
-    type: String, 
+  status: {
+    type: String,
     enum: ['Optimal', 'Acceptable', 'Deficient', 'Excessive', 'Missing'],
-    required: true 
+    required: true
   },
   deviationPercentage: { type: Number, default: 0 },
   parameterWeight: { type: Number, default: 0.1 },
@@ -26,7 +26,7 @@ const singleCropRecommendationSchema = new mongoose.Schema({
     enum: ['Highly Suitable', 'Suitable', 'Suitable with Improvements', 'Not Recommended', 'Insufficient Data'],
     required: true
   },
-  suitabilityScore: { type: Number, default: null }, // 0 to 100, null if data is insufficient
+  suitabilityScore: { type: Number, default: null },
   parameterComparisons: [parameterComparisonSchema],
   matchingParameters: [{ type: String }],
   deficientParameters: [{ type: String }],
@@ -40,7 +40,7 @@ const singleCropRecommendationSchema = new mongoose.Schema({
 
 const cropRecommendationSchema = new mongoose.Schema({
   soilTestId: { type: mongoose.Schema.Types.ObjectId, ref: 'SoilTest', required: true },
-  selectedCropId: { type: mongoose.Schema.Types.ObjectId, ref: 'Crop' }, // For crop-specific evaluation
+  selectedCropId: { type: mongoose.Schema.Types.ObjectId, ref: 'Crop' },
   evaluationType: {
     type: String,
     enum: ['crop_specific', 'all_crops'],
@@ -54,7 +54,7 @@ const cropRecommendationSchema = new mongoose.Schema({
     enum: ['Suitable', 'Moderately Suitable', 'Not Suitable', 'Insufficient Data'],
     default: 'Moderately Suitable'
   },
-  suitabilityScore: { type: Number, default: null }, // for crop-specific single crop
+  suitabilityScore: { type: Number, default: null },
   recommendations: [singleCropRecommendationSchema],
   createdAt: { type: Date, default: Date.now }
 }, {

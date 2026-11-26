@@ -70,7 +70,7 @@ export default function SoilHistory() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary-700)', fontWeight: '700', fontSize: '0.85rem', textTransform: 'uppercase' }}>
@@ -162,7 +162,7 @@ export default function SoilHistory() {
                   transition: 'all 0.2s ease'
                 }}
               >
-                
+
                 <div
                   style={{
                     padding: '18px 24px',
@@ -176,7 +176,7 @@ export default function SoilHistory() {
                   }}
                   onClick={() => toggleExpand(test._id)}
                 >
-                  
+
                   <div style={{ display: 'flex', alignItems: 'center', gap: '16px', minWidth: '280px' }}>
                     <div style={{
                       backgroundColor: test.overallSource === 'simulation' ? 'var(--badge-sim-bg)' : test.overallSource === 'hardware' ? 'var(--badge-hw-bg)' : 'var(--badge-lab-bg)',
@@ -297,14 +297,14 @@ export default function SoilHistory() {
                     flexDirection: 'column',
                     gap: '20px'
                   }}>
-                    
+
                     <div>
                       <h4 style={{ fontSize: '0.95rem', fontWeight: '800', color: 'var(--primary-900)', marginBottom: '10px' }}>
                         All Stored Soil Parameters & Measurement Attribution
                       </h4>
 
                       <div className="grid-4" style={{ gap: '10px' }}>
-                        
+
                         <div style={{ padding: '12px', backgroundColor: 'var(--bg-subtle)', borderRadius: '8px' }}>
                           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Soil Moisture</div>
                           <div style={{ fontSize: '1.25rem', fontWeight: '800', fontFamily: 'JetBrains Mono', color: 'var(--primary-900)' }}>

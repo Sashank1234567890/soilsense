@@ -57,7 +57,7 @@ export default function SoilDetail() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-      
+
       <div>
         <Link to="/soil-to-crop" className="btn btn-secondary btn-sm" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
           <ArrowLeft size={16} />

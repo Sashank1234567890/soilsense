@@ -50,8 +50,8 @@ export default function TestYourSoil() {
   const [searchParams] = useSearchParams();
   const autoTestId = searchParams.get('autoTestId');
 
-  const [activeStep, setActiveStep] = useState(autoTestId ? 'report' : 'setup'); // 'setup', 'reading', 'report'
-  const [dataSource, setDataSource] = useState('field_sensor'); // 'hardware', 'field_sensor', 'registered_profile'
+  const [activeStep, setActiveStep] = useState(autoTestId ? 'report' : 'setup');
+  const [dataSource, setDataSource] = useState('field_sensor');
   const [deviceStatus, setDeviceStatus] = useState('Hardware Disconnected (Standby • Awaiting USB Device)');
   const [iotConnected, setIotConnected] = useState(false);
   const [autoSyncCountdown, setAutoSyncCountdown] = useState(15);
@@ -71,7 +71,6 @@ export default function TestYourSoil() {
   const [gpsLoading, setGpsLoading] = useState(false);
   const [gpsSuccessMsg, setGpsSuccessMsg] = useState('');
 
-  // Auto-detect GPS location
   const handleAutoDetectGPS = () => {
     if (!navigator.geolocation) {
       alert(lang === 'hi' ? 'ब्राउज़र में GPS सपोर्ट उपलब्ध नहीं है।' : 'GPS geolocation is not supported by your browser.');
@@ -89,7 +88,6 @@ export default function TestYourSoil() {
           let detectedDistrict = 'Detected Farm GPS';
           let detectedVillage = `GPS Farm (${latitude.toFixed(2)}°N, ${longitude.toFixed(2)}°E)`;
 
-          // Reverse geocoding
           try {
             const geoRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
             if (geoRes.ok) {
@@ -114,7 +112,6 @@ export default function TestYourSoil() {
             plotName: `Farm Plot (${latitude.toFixed(2)}°N, ${longitude.toFixed(2)}°E)`
           });
 
-          // Sync location to active plot in backend
           try {
             await axios.post('/api/advisory/update-location', {
               plotId: 'PLOT_001',
@@ -271,7 +268,6 @@ export default function TestYourSoil() {
     return () => clearInterval(interval);
   }, [lang]);
 
-  // Automatic 15-second telemetry polling timer when connected
   useEffect(() => {
     let timer = null;
     if (autoSyncEnabled && iotConnected) {
@@ -329,7 +325,6 @@ export default function TestYourSoil() {
         const ok = await fetchLiveReading(false);
         if (ok) return;
 
-        // Standby/fallback when Arduino hardware is offline
         const sampleMoisture = 52.4;
         const sampleTemp = 25.5;
         setSensorValues(prev => ({
@@ -343,7 +338,7 @@ export default function TestYourSoil() {
           : `🟡 Arduino Standby: Loaded calibrated test reading (Moisture ${sampleMoisture}%, Temp ${sampleTemp}°C)`);
         return;
       } else {
-        // Field sensor / station mode: standard calibration
+
         const calibratedMoisture = 48.0;
         const calibratedTemp = 24.5;
         setSensorValues(prev => ({
@@ -431,7 +426,7 @@ export default function TestYourSoil() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-      
+
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#15803d', fontWeight: '700', fontSize: '0.85rem' }}>
           <Sprout size={18} color="#16a34a" />
@@ -449,7 +444,7 @@ export default function TestYourSoil() {
 
       {activeStep === 'setup' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          
+
           <div className="card">
             <h2 className="card-title" style={{ fontSize: '1.2rem', color: '#1f2937' }}>
               {lang === 'hi' ? '1. जांच का तरीका चुनें' : '1. Select Testing Method'}
@@ -461,7 +456,7 @@ export default function TestYourSoil() {
             </div>
 
             <div className="grid-3" style={{ marginTop: '16px' }}>
-              
+
               <div
                 onClick={() => setDataSource('hardware')}
                 style={{
@@ -715,14 +710,13 @@ export default function TestYourSoil() {
               </div>
             </div>
 
-            {/* 15-Second Auto-Sync & Real-Time Arduino Hardware LED Indicator */}
             <div style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(310px, 1fr))',
               gap: '12px',
               marginBottom: '18px'
             }}>
-              {/* Card 1: 15-Second Auto-Reading Telemetry */}
+
               <div style={{
                 backgroundColor: iotConnected ? '#f0fdf4' : '#f8fafc',
                 border: `1.5px solid ${iotConnected ? '#86efac' : '#e2e8f0'}`,
@@ -859,7 +853,6 @@ export default function TestYourSoil() {
               })()}
             </div>
 
-            {/* Circuit Pin Reference Accordion */}
             <div style={{ marginBottom: '16px' }}>
               <button
                 type="button"
@@ -1138,7 +1131,7 @@ export default function TestYourSoil() {
 
       {activeStep === 'report' && generatedReport && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          
+
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
             <button
               onClick={() => setActiveStep('setup')}

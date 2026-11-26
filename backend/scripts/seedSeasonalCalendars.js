@@ -160,7 +160,6 @@ async function seed() {
     console.log(`Updated ${name}: matched ${res.matchedCount}, modified ${res.modifiedCount}`);
   }
 
-  // Also default any other crops based on their growingSeasons
   const remainingCrops = await Crop.find({ 'seasonalCalendar.optimalSowingMonths': { $exists: false } });
   for (const crop of remainingCrops) {
     let optimalSowingMonths = [6, 7];

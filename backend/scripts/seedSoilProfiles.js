@@ -22,7 +22,6 @@ async function seedSoilProfiles() {
     await SoilProfile.deleteMany({});
     await SoilTest.deleteMany({});
 
-    // 1. Create Demo Users
     const user = await User.create({
       name: "Ramesh Sharma",
       email: "ramesh.farmer@soilsense.agri",
@@ -45,13 +44,11 @@ async function seedSoilProfiles() {
       village: "Pusa Campus"
     });
 
-    // 2. Fetch Soil Types and Crops
     const alluvialSoil = await SoilType.findOne({ name: "Alluvial Soil" });
     const blackSoil = await SoilType.findOne({ name: "Black Soil" });
     const wheat = await Crop.findOne({ name: "Wheat" });
     const cotton = await Crop.findOne({ name: "Cotton" });
 
-    // 3. Create Demo Plots
     const plot1 = await Plot.create({
       plotId: "PLOT_001",
       name: "North Farm - Block A (Wheat Basin)",
@@ -86,7 +83,6 @@ async function seedSoilProfiles() {
       status: "active"
     });
 
-    // 4. Create Demo Devices
     await Device.create([
       {
         deviceId: "DEVICE_001",
@@ -112,7 +108,6 @@ async function seedSoilProfiles() {
       }
     ]);
 
-    // 5. Create Baseline Soil Profiles
     const profile1 = await SoilProfile.create({
       profileId: "PROF_PUNJAB_01",
       owner: user._id,
@@ -169,7 +164,6 @@ async function seedSoilProfiles() {
       }
     });
 
-    // 6. Create Historical Soil Tests
     const test1 = await SoilTest.create({
       testId: "TEST_20261101_001",
       plotId: "PLOT_001",
@@ -214,7 +208,6 @@ async function seedSoilProfiles() {
       timestamp: new Date(Date.now() - 24 * 3600 * 1000)
     });
 
-    // Link test to profile
     profile1.historicalTestRefs.push(test1._id);
     await profile1.save();
 

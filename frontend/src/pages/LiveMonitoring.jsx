@@ -123,7 +123,7 @@ export default function LiveMonitoring() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-      
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#be185d', fontWeight: '700', fontSize: '0.85rem', textTransform: 'uppercase' }}>
@@ -172,7 +172,7 @@ export default function LiveMonitoring() {
 
       {selectedDevice && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          
+
           <div className="card" style={{ borderTop: '4px solid #be185d' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
               <div>

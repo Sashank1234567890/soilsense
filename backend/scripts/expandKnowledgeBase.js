@@ -513,7 +513,6 @@ async function runExpansion() {
     await mongoose.connect(connStr);
     console.log('[Expansion] Connected to MongoDB.');
 
-    // 1. Expand Crops
     console.log('[Expansion] Seeding additional Indian crops...');
     for (const cropData of newCrops) {
       const exists = await Crop.findOne({ name: cropData.name });
@@ -525,7 +524,6 @@ async function runExpansion() {
     const totalCrops = await Crop.countDocuments();
     console.log(`[Expansion] Total crops in database: ${totalCrops}`);
 
-    // 2. Expand Soil Types
     console.log('[Expansion] Seeding additional Soil Types...');
     for (const soilData of newSoilTypes) {
       const exists = await SoilType.findOne({ name: soilData.name });
@@ -537,7 +535,6 @@ async function runExpansion() {
     const totalSoils = await SoilType.countDocuments();
     console.log(`[Expansion] Total soil types in database: ${totalSoils}`);
 
-    // 3. Backfill Tested Data for All Existing Users
     const users = await User.find({});
     console.log(`[Expansion] Checking tested data for ${users.length} users...`);
 
@@ -546,7 +543,6 @@ async function runExpansion() {
       if (testCount < 3) {
         console.log(`Seeding rich tested data for user: ${u.name} (${u.email})...`);
 
-        // Create Plots if none exist
         const plotAId = `PLOT_${u._id.toString().slice(-4).toUpperCase()}_01`;
         const plotBId = `PLOT_${u._id.toString().slice(-4).toUpperCase()}_02`;
 
@@ -584,7 +580,6 @@ async function runExpansion() {
           { upsert: true, new: true }
         );
 
-        // Test 1: Recent IoT Sensor Probe (2 days ago)
         const t1 = await SoilTest.create({
           testId: `TEST_${Date.now()}_101`,
           userId: u._id,
@@ -621,7 +616,6 @@ async function runExpansion() {
         });
         await generateSoilReport(t1._id);
 
-        // Test 2: Field Sensor Telemetry (18 days ago)
         const t2 = await SoilTest.create({
           testId: `TEST_${Date.now()}_102`,
           userId: u._id,
@@ -658,7 +652,6 @@ async function runExpansion() {
         });
         await generateSoilReport(t2._id);
 
-        // Test 3: Seasonal Pre-Sowing Baseline (45 days ago)
         const t3 = await SoilTest.create({
           testId: `TEST_${Date.now()}_103`,
           userId: u._id,

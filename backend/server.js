@@ -12,9 +12,8 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5001;
 
-// 1. Security & Middleware
 app.use(helmet({
-  contentSecurityPolicy: false // Allows dashboard SVG / charts
+  contentSecurityPolicy: false
 }));
 app.use(cors({
   origin: '*',
@@ -28,16 +27,14 @@ if (process.env.NODE_ENV !== 'test') {
   app.use(morgan('dev'));
 }
 
-// 2. Rate Limiting for high-traffic sensor endpoints
 const ingestionLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 300, // up to 300 readings per minute per IP
+  windowMs: 60 * 1000,
+  max: 300,
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, message: 'Too many sensor readings. Rate limit reached.' }
 });
 
-// 3. Connect to MongoDB and apply schema validation
 if (process.env.NODE_ENV !== 'test') {
   connectDB().then(conn => {
     applyMongoSchemaValidators(conn.connection.db);
@@ -48,7 +45,6 @@ if (process.env.NODE_ENV !== 'test') {
   });
 }
 
-// 4. API Routes Mounting
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/crops', require('./routes/crops'));
 app.use('/api', require('./routes/soils'));
@@ -60,7 +56,6 @@ app.use('/api/history', require('./routes/history'));
 app.use('/api/dbms', require('./routes/dbms'));
 app.use('/api/advisory', require('./routes/advisoryRoutes'));
 
-// Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'healthy',
@@ -71,7 +66,6 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// 5. Global Error Handler
 app.use((err, req, res, next) => {
   console.error('[SoilSense Global Error Handler]:', err.stack);
   res.status(err.status || 500).json({
@@ -81,7 +75,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 6. Start Server
 if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {
     console.log(`[SoilSense API Server] Running on http://localhost:${PORT} [DATA_MODE=${process.env.DATA_MODE || 'simulation'}]`);

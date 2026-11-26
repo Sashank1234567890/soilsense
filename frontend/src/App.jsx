@@ -20,7 +20,6 @@ import AboutProject from './pages/AboutProject';
 import Login from './pages/Login';
 import Register from './pages/Register';
 
-// 6 New Agronomic Intelligence Pages (Single Sensor Compatible)
 import SmartIrrigation from './pages/SmartIrrigation';
 import FertilizerPrescription from './pages/FertilizerPrescription';
 import DiseaseRadar from './pages/DiseaseRadar';
@@ -37,7 +36,7 @@ export default function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Layout />}>
-              
+
               <Route index element={<Home />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="soil-to-crop" element={<SoilToCrop />} />

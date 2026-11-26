@@ -8,7 +8,6 @@ async function seedGuestTests() {
   await mongoose.connect('mongodb://127.0.0.1:27017/soilsense?directConnection=true');
   console.log('[SeedGuestTests] Connected to MongoDB');
 
-  // Find demo users
   const users = await mongoose.connection.collection('users').find({
     email: { $in: ['farmer@soilsense.in', 'agronomist@soilsense.in', 'student@nitdelhi.ac.in'] }
   }).toArray();
@@ -22,7 +21,6 @@ async function seedGuestTests() {
     return;
   }
 
-  // Clear existing tests for these users
   const demoIds = Object.values(userMap);
   await SoilTest.deleteMany({ userId: { $in: demoIds } });
   await CropRecommendation.deleteMany({});
@@ -34,7 +32,7 @@ async function seedGuestTests() {
   const maize = await Crop.findOne({ name: /Maize/i });
 
   const guestData = [
-    // 1. Farmer Guest Tests
+
     {
       testId: 'TEST_DEMO_FARMER_01',
       userId: userMap['farmer@soilsense.in'],
@@ -112,7 +110,6 @@ async function seedGuestTests() {
       timestamp: new Date(Date.now() - 3600000 * 12)
     },
 
-    // 2. Agronomist Guest Tests
     {
       testId: 'TEST_DEMO_AGRONOMIST_01',
       userId: userMap['agronomist@soilsense.in'],
@@ -151,7 +148,6 @@ async function seedGuestTests() {
       timestamp: new Date(Date.now() - 3600000 * 24 * 3)
     },
 
-    // 3. Student Guest Tests (NIT Delhi)
     {
       testId: 'TEST_DEMO_STUDENT_01',
       userId: userMap['student@nitdelhi.ac.in'],
@@ -193,8 +189,7 @@ async function seedGuestTests() {
 
   for (const item of guestData) {
     const createdTest = await SoilTest.create(item);
-    
-    // Create CropRecommendation matching singleCropRecommendationSchema
+
     await CropRecommendation.create({
       soilTestId: createdTest._id,
       selectedCropId: item.selectedCropId,
@@ -238,7 +233,6 @@ async function seedGuestTests() {
       createdAt: item.timestamp
     });
 
-    // Create AnalysisReport
     await AnalysisReport.create({
       reportId: `REP_${createdTest.testId}`,
       soilTestId: createdTest._id,

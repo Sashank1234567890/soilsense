@@ -105,9 +105,6 @@ export default function Layout() {
     await switchToUser(emailOrId);
   };
 
-  // Sign out current account:
-  // If another account is logged in: automatically switch to that other account!
-  // If no other account remains: redirect directly to sign in page.
   const handleSignOutCurrent = () => {
     setUserDropdownOpen(false);
     const res = signOutAccount(user?.email || user?._id);
@@ -116,14 +113,13 @@ export default function Layout() {
     }
   };
 
-  // Sign out a specific inactive account from the logged-in accounts list
   const handleSignOutOther = (emailOrId) => {
     signOutAccount(emailOrId);
   };
 
   return (
     <div className="app-container">
-      
+
       <aside className="sidebar">
         <div className="sidebar-header">
           <div className="sidebar-logo" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}><Sprout size={24} color="#10b981" /></div>
@@ -171,7 +167,7 @@ export default function Layout() {
           <h1 className="top-bar-title">{getPageTitle()}</h1>
 
           <div className="top-bar-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            
+
             <div
               style={{
                 display: 'inline-flex',
@@ -201,7 +197,7 @@ export default function Layout() {
                   transition: 'all 0.15s ease'
                 }}
               >
-                
+
                 <span>हिन्दी</span>
               </button>
               <button
@@ -222,7 +218,7 @@ export default function Layout() {
                   transition: 'all 0.15s ease'
                 }}
               >
-                
+
                 <span>English</span>
               </button>
             </div>
@@ -302,7 +298,7 @@ export default function Layout() {
                     flexDirection: 'column',
                     gap: '10px'
                   }}>
-                    
+
                     <div style={{
                       padding: '10px 12px',
                       backgroundColor: '#f0fdf4',
@@ -519,7 +515,7 @@ export default function Layout() {
                             fontSize: '0.78rem'
                           }}
                         >
-                          
+
                           <div>
                             <strong>Ramesh Kumar</strong> <span style={{ color: 'var(--text-muted)' }}>({lang === 'hi' ? 'किसान • लुधियाना' : 'Farmer • Ludhiana'})</span>
                           </div>
@@ -541,7 +537,7 @@ export default function Layout() {
                             fontSize: '0.78rem'
                           }}
                         >
-                          
+
                           <div>
                             <strong>Dr. Preeti Sharma</strong> <span style={{ color: 'var(--text-muted)' }}>({lang === 'hi' ? 'कृषि विशेषज्ञ • PAU' : 'Agronomist • PAU'})</span>
                           </div>
@@ -563,7 +559,7 @@ export default function Layout() {
                             fontSize: '0.78rem'
                           }}
                         >
-                          
+
                           <div>
                             <strong>Rahul Verma</strong> <span style={{ color: 'var(--text-muted)' }}>({lang === 'hi' ? 'NIT दिल्ली छात्र' : 'NIT Delhi Student'})</span>
                           </div>

@@ -7,7 +7,6 @@ function generateToken(id) {
   return jwt.sign({ id }, JWT_SECRET, { expiresIn: '30d' });
 }
 
-// 1. Register User (Creates fresh, clean account with zero pre-loaded test data)
 async function register(req, res) {
   try {
     const { name, email, password, role, state, district, village, plotName, phone } = req.body;
@@ -60,7 +59,6 @@ async function register(req, res) {
   }
 }
 
-// 2. Login User
 async function login(req, res) {
   try {
     const { email, password } = req.body;
@@ -116,7 +114,6 @@ async function login(req, res) {
   }
 }
 
-// 3. Get Current User Profile
 async function getMe(req, res) {
   try {
     const user = await User.findById(req.user._id).select('-password');
@@ -133,7 +130,6 @@ async function getMe(req, res) {
   }
 }
 
-// 4. One-Click Demo Role Switcher
 async function switchDemoProfile(req, res) {
   try {
     const { role } = req.body;
@@ -209,7 +205,6 @@ async function switchDemoProfile(req, res) {
   }
 }
 
-// 5. Get All Registered Accounts (for account switcher)
 async function getAllAccounts(req, res) {
   try {
     res.set({
@@ -224,7 +219,6 @@ async function getAllAccounts(req, res) {
   }
 }
 
-// 6. Direct Account Switcher
 async function switchAccount(req, res) {
   try {
     const { email, userId } = req.body;
@@ -263,7 +257,6 @@ async function switchAccount(req, res) {
   }
 }
 
-// 7. Delete User Account from System / Switcher List
 async function deleteAccount(req, res) {
   try {
     const accountId = req.params?.id || req.body?.userId;
@@ -281,13 +274,11 @@ async function deleteAccount(req, res) {
       return res.status(404).json({ success: false, message: 'Account not found' });
     }
 
-    // Protect the 3 demo accounts
     const DEMO_EMAILS = ['farmer@soilsense.in', 'agronomist@soilsense.in', 'student@nitdelhi.ac.in'];
     if (DEMO_EMAILS.includes((user.email || '').toLowerCase())) {
       return res.status(400).json({ success: false, message: 'Official demo profiles cannot be deleted.' });
     }
 
-    // Delete user and associated soil tests
     await Promise.all([
       User.deleteOne({ _id: user._id }),
       SoilTest.deleteMany({ userId: user._id })

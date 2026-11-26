@@ -1,8 +1,5 @@
 const Crop = require('../models/Crop');
 
-/**
- * Search crops with partial and case-insensitive matching
- */
 async function searchCrops(req, res) {
   try {
     const q = req.query.q ? req.query.q.trim() : '';
@@ -14,7 +11,6 @@ async function searchCrops(req, res) {
       return res.json({ success: true, count: crops.length, data: crops });
     }
 
-    // Use regex for partial, case-insensitive matching
     const searchRegex = new RegExp(q, 'i');
     const filter = {
       $or: [
@@ -42,9 +38,6 @@ async function searchCrops(req, res) {
   }
 }
 
-/**
- * Get all crops with optional category and season filters
- */
 async function getAllCrops(req, res) {
   try {
     const { category, season } = req.query;
@@ -59,9 +52,6 @@ async function getAllCrops(req, res) {
   }
 }
 
-/**
- * Get crop by ID
- */
 async function getCropById(req, res) {
   try {
     const crop = await Crop.findById(req.params.id);
@@ -74,9 +64,6 @@ async function getCropById(req, res) {
   }
 }
 
-/**
- * Create new crop record
- */
 async function createCrop(req, res) {
   try {
     const crop = await Crop.create(req.body);
@@ -86,9 +73,6 @@ async function createCrop(req, res) {
   }
 }
 
-/**
- * Update crop record
- */
 async function updateCrop(req, res) {
   try {
     const crop = await Crop.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });

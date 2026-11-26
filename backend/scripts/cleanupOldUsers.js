@@ -21,7 +21,6 @@ async function cleanupOldUsers() {
     await mongoose.connect(connStr);
     console.log('[Cleanup] Connected to MongoDB.');
 
-    // Find all users created by the user / tests (not the official 3 demo accounts)
     const oldUsers = await User.find({ email: { $nin: OFFICIAL_DEMO_EMAILS } });
     console.log(`Found ${oldUsers.length} user-created accounts to delete:`);
 
@@ -32,11 +31,10 @@ async function cleanupOldUsers() {
     }
 
     if (userIdsToDelete.length > 0) {
-      // Find soil tests for these users
+
       const userTests = await SoilTest.find({ userId: { $in: userIdsToDelete } });
       const testIds = userTests.map(t => t._id);
 
-      // Clean up child collections
       const delReports = await AnalysisReport.deleteMany({ soilTestId: { $in: testIds } });
       const delRecs = await CropRecommendation.deleteMany({ soilTestId: { $in: testIds } });
       const delPlans = await SoilImprovementPlan.deleteMany({ soilTestId: { $in: testIds } });
@@ -55,7 +53,6 @@ async function cleanupOldUsers() {
       console.log('No old user-created accounts found to delete.');
     }
 
-    // List remaining official accounts
     const remainingUsers = await User.find({});
     console.log('\n[Remaining Active Accounts]:');
     remainingUsers.forEach(u => {

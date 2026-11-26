@@ -6,7 +6,6 @@ export default function FarmHeatmap() {
   const { lang, t } = useLanguage();
   const [selectedZone, setSelectedZone] = useState(null);
 
-  // 4x4 Grid representing 16 spatial sampling blocks in Plot 1
   const [grid, setGrid] = useState([
     { id: 'Z1', row: 1, col: 1, moisture: 38, status: 'Optimal' },
     { id: 'Z2', row: 1, col: 2, moisture: 42, status: 'Optimal' },
@@ -30,15 +29,15 @@ export default function FarmHeatmap() {
   ]);
 
   const getColor = (m) => {
-    if (m < 35) return '#f87171'; // Red / Dry
-    if (m <= 70) return '#4ade80'; // Green / Optimal
-    if (m <= 80) return '#60a5fa'; // Blue / Saturated
-    return '#1e40af'; // Deep Blue / Waterlogged
+    if (m < 35) return '#f87171';
+    if (m <= 70) return '#4ade80';
+    if (m <= 80) return '#60a5fa';
+    return '#1e40af';
   };
 
   return (
     <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '24px 16px' }}>
-      
+
       <div style={{ marginBottom: '24px' }}>
         <h1 style={{ fontSize: '28px', fontWeight: '700', color: '#1b4332', display: 'flex', alignItems: 'center', gap: '12px', margin: 0 }}>
           <Map size={32} color="#2d6a4f" />
@@ -52,7 +51,7 @@ export default function FarmHeatmap() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
-        
+
         <div style={{
           backgroundColor: '#ffffff',
           borderRadius: '12px',

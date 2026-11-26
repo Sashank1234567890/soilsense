@@ -9,22 +9,16 @@ const { classifySoil } = require('./soilClassificationService');
 const { evaluateAllCrops } = require('./cropRecommendationService');
 const { generateSoilImprovementPlan } = require('./soilImprovementService');
 
-/**
- * Compiles a comprehensive Soil Intelligence Report and stores it in MongoDB
- */
 async function generateSoilReport(soilTestId) {
   const soilTest = await SoilTest.findById(soilTestId);
   if (!soilTest) {
     throw new Error(`Soil test with ID ${soilTestId} not found`);
   }
 
-  // A. Soil Condition
   const { condition, dataCompleteness } = analyzeSoilCondition(soilTest.values, soilTest.parameterSources);
 
-  // B. Soil Classification
   const classification = await classifySoil(soilTest.values, soilTest.parameterSources);
 
-  // C. Recommendations against all crops
   const recommendation = await evaluateAllCrops(soilTestId);
   const topCrops = (recommendation.recommendations || []).slice(0, 5).map(r => ({
     cropName: r.cropName,
@@ -34,7 +28,6 @@ async function generateSoilReport(soilTestId) {
     keyReason: r.explanation
   }));
 
-  // D. Soil Improvement Plan
   const improvementPlan = await generateSoilImprovementPlan(soilTestId, soilTest.selectedCropId);
   let improvementHighlights = [
     ...improvementPlan.deficiencies.map(d => ({
@@ -69,7 +62,6 @@ async function generateSoilReport(soilTestId) {
     ];
   }
 
-  // E. Potential Agricultural Uses
   const potentialUses = [
     'Arable grain & cereal cropping (Wheat, Barley, Maize) under moisture-regulated irrigation schedules',
     'Commercial pulse rotation (Moong, Arhar, Gram) with Rhizobial bio-inoculants to naturally build soil nitrogen',
@@ -119,9 +111,6 @@ async function generateSoilReport(soilTestId) {
   return report;
 }
 
-/**
- * Generates a clean PDF stream for download
- */
 function createReportPDFStream(report, soilTest, res) {
   const doc = new PDFDocument({ margin: 40 });
 
@@ -129,21 +118,18 @@ function createReportPDFStream(report, soilTest, res) {
   res.setHeader('Content-Disposition', `attachment; filename="SoilSense_Report_${report.reportId}.pdf"`);
   doc.pipe(res);
 
-  // Header
   doc.fontSize(22).fillColor('#1b4332').text('SoilSense Intelligence Report', { align: 'center' });
   doc.fontSize(11).fillColor('#2d6a4f').text('MongoDB + IoT Soil Intelligence & Crop Recommendation Platform', { align: 'center' });
   doc.moveDown(0.5);
   doc.strokeColor('#52b788').lineWidth(1.5).moveTo(40, doc.y).lineTo(570, doc.y).stroke();
   doc.moveDown(1);
 
-  // Metadata Box
   doc.fontSize(10).fillColor('#333333');
   doc.text(`Report ID: ${report.reportId}   |   Date: ${new Date(report.generatedAt).toLocaleString('en-IN')}`);
   doc.text(`Plot ID: ${soilTest.plotId}   |   Test Kind: ${soilTest.testKind.toUpperCase()}   |   Source: ${soilTest.overallSource.toUpperCase()}`);
   doc.text(`Location: ${report.sections?.geographicContext?.village || ''}, ${report.sections?.geographicContext?.district || ''}, ${report.sections?.geographicContext?.state || ''}`);
   doc.moveDown(1);
 
-  // Section A: Soil Condition
   doc.fontSize(14).fillColor('#1b4332').text('Section A: Measured Soil Condition');
   doc.moveDown(0.3);
   const cond = report.sections?.soilCondition || {};
@@ -153,7 +139,6 @@ function createReportPDFStream(report, soilTest, res) {
   });
   doc.moveDown(1);
 
-  // Section B: Soil Classification & Scientific Disclaimer
   doc.fontSize(14).fillColor('#1b4332').text('Section B: Soil Classification & Scientific Note');
   doc.moveDown(0.3);
   const cls = report.sections?.soilClassification || {};
@@ -162,7 +147,6 @@ function createReportPDFStream(report, soilTest, res) {
   doc.fontSize(9).fillColor('#b7094c').text(`Scientific Note: ${cls.scientificHonestyNote}`);
   doc.moveDown(1);
 
-  // Section C: Crop Recommendations
   doc.fontSize(14).fillColor('#1b4332').text('Section C: Crop Suitability Recommendations');
   doc.moveDown(0.3);
   (report.sections?.topRecommendedCrops || []).forEach(c => {
@@ -171,7 +155,6 @@ function createReportPDFStream(report, soilTest, res) {
   });
   doc.moveDown(1);
 
-  // Section D: Soil Improvement Highlights
   doc.fontSize(14).fillColor('#1b4332').text('Section D: Targeted Soil Improvement Highlights');
   doc.moveDown(0.3);
   (report.sections?.soilImprovementHighlights || []).forEach(h => {

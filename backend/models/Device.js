@@ -7,8 +7,8 @@ const deviceSchema = new mongoose.Schema({
   status: { type: String, enum: ['active', 'inactive', 'calibrating', 'error'], default: 'active' },
   hardwareModel: { type: String, default: 'Arduino Uno + Capacitive Moisture V1.2' },
   calibration: {
-    dryADC: { type: Number, default: 820 }, // Air/Dry soil ADC value (0% moisture)
-    wetADC: { type: Number, default: 350 }  // Saturated soil/Water ADC value (100% moisture)
+    dryADC: { type: Number, default: 820 },
+    wetADC: { type: Number, default: 350 }
   },
   lastHeartbeat: { type: Date, default: Date.now },
   source: { type: String, enum: ['hardware', 'simulation'], default: 'simulation' },

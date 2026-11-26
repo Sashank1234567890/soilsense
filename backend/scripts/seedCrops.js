@@ -62,7 +62,7 @@ const indianCrops = [
     },
     parameterWeights: {
       pH: 0.12,
-      moisture: 0.35, // High moisture dependency
+      moisture: 0.35,
       temperature: 0.18,
       nitrogen: 0.15,
       phosphorus: 0.08,
@@ -312,7 +312,7 @@ const indianCrops = [
       pH: { min: 6.2, max: 7.8, optimalMin: 6.5, optimalMax: 7.2 },
       moisture: { min: 45, max: 75, optimalMin: 55, optimalMax: 65 },
       temperature: { min: 20, max: 35, optimalMin: 25, optimalMax: 30 },
-      nitrogen: { min: 20, max: 40, optimalMin: 25, optimalMax: 30 }, // Low N needed due to nodulation
+      nitrogen: { min: 20, max: 40, optimalMin: 25, optimalMax: 30 },
       phosphorus: { min: 50, max: 80, optimalMin: 60, optimalMax: 70 },
       potassium: { min: 30, max: 60, optimalMin: 40, optimalMax: 50 },
       texture: ["Clay", "Clay Loam", "Black Soil"],
@@ -323,8 +323,8 @@ const indianCrops = [
       pH: 0.20,
       moisture: 0.25,
       temperature: 0.18,
-      nitrogen: 0.08, // Nitrogen fixation lowers N weight
-      phosphorus: 0.15, // Phosphorus critical for root nodulation
+      nitrogen: 0.08,
+      phosphorus: 0.15,
       potassium: 0.08,
       texture: 0.03,
       drainage: 0.03
@@ -363,7 +363,7 @@ const indianCrops = [
       nitrogen: 0.08,
       phosphorus: 0.14,
       potassium: 0.10,
-      texture: 0.06, // Texture is critical for pegging
+      texture: 0.06,
       drainage: 0.04
     },
     suitableSoilTypes: ["Red Soil", "Sandy Soil", "Loamy Soil"],
@@ -394,7 +394,7 @@ const indianCrops = [
       organicMatter: { min: 0.3, optimalMin: 0.7 }
     },
     parameterWeights: {
-      pH: 0.22, // High salinity/alkalinity tolerance
+      pH: 0.22,
       moisture: 0.20,
       temperature: 0.20,
       nitrogen: 0.14,
@@ -435,7 +435,7 @@ const indianCrops = [
       moisture: 0.22,
       temperature: 0.18,
       nitrogen: 0.08,
-      phosphorus: 0.16, // Phosphorus key for pulse root nodule growth
+      phosphorus: 0.16,
       potassium: 0.08,
       texture: 0.04,
       drainage: 0.04
@@ -621,7 +621,7 @@ const indianCrops = [
       temperature: 0.18,
       nitrogen: 0.12,
       phosphorus: 0.10,
-      potassium: 0.14, // Potassium critical for burning quality
+      potassium: 0.14,
       texture: 0.04,
       drainage: 0.02
     },
@@ -1060,7 +1060,7 @@ const indianCrops = [
       organicMatter: { min: 1.0, optimalMin: 2.0 }
     },
     parameterWeights: {
-      pH: 0.22, // Highly sensitive to soil acidity
+      pH: 0.22,
       moisture: 0.22,
       temperature: 0.18,
       nitrogen: 0.16,

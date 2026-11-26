@@ -15,19 +15,19 @@ const SoilHealthCardSchema = new mongoose.Schema({
     soilType: { type: String, default: 'Alluvial Soil' }
   },
   chemicalParameters: {
-    // Macro
+
     nitrogen_kg_ha: { value: Number, rating: String },
     phosphorus_kg_ha: { value: Number, rating: String },
     potassium_kg_ha: { value: Number, rating: String },
-    // Secondary
+
     sulphur_ppm: { value: Number, rating: String },
-    // Micro
+
     zinc_ppm: { value: Number, rating: String },
     iron_ppm: { value: Number, rating: String },
     copper_ppm: { value: Number, rating: String },
     manganese_ppm: { value: Number, rating: String },
     boron_ppm: { value: Number, rating: String },
-    // Physical
+
     pH: { value: Number, rating: String },
     electricalConductivity_dS_m: { value: Number, rating: String },
     organicCarbonPercent: { value: Number, rating: String }
